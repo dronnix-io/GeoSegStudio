@@ -1,3 +1,7 @@
 .venv
 .vscode
 ./data
+/data/test_dataset/
+/data/train_dataset/
+/data/test_dataset/*.tif
+/data/train_dataset/*.tif
