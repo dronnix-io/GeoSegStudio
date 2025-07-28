@@ -1,0 +1,8 @@
+[general]
+name=DeepLearningPlugin
+description=A QGIS Plugin for DL operations. (Mainly Semantic Segmentation.)
+version=1.0.0
+qgisMinimumVersion=3.10
+author=Salar Ghaffarian
+email=salar.ghaffarian1@gmail.com
+category=Plugins
