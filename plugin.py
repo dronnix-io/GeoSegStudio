@@ -1,6 +1,7 @@
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
 from .ui.main_ui import DeepLearningDockWidget
+from qgis.PyQt.QtCore import Qt
 
 class DeepLearningPlugin:
     def __init__(self, iface):
