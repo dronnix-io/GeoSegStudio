@@ -7,3 +7,14 @@ author=Salar Ghaffarian
 email=salar.ghaffarian1@gmail.com
 category=Plugins
 icon=icon.png
+
+
+# Additional Information
+about=A dockable QGIS plugin that allows running deep learning semantic segmentation on the Geo-referenced raster data.
+tag=deep learning;semantic segmentation;PyTorch;Additional
+homepage=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS
+tracker=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS/issues
+repository=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS.git
+
+experimental=False
+deprecated=False
