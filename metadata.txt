@@ -11,7 +11,7 @@ icon=icon.png
 
 # Additional Information
 about=A dockable QGIS plugin that allows running deep learning semantic segmentation on the Geo-referenced raster data.
-tag=deep learning;semantic segmentation;PyTorch;Additional
+tags=deep learning;semantic segmentation;PyTorch;AI
 homepage=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS
 tracker=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS/issues
 repository=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS.git
