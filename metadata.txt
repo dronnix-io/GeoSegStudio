@@ -6,3 +6,4 @@ qgisMinimumVersion=3.10
 author=Salar Ghaffarian
 email=salar.ghaffarian1@gmail.com
 category=Plugins
+icon=icon.png
