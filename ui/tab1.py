@@ -1,29 +1,44 @@
-from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QLabel, QScrollArea, QFormLayout
+from qgis.PyQt.QtWidgets import (
+    QWidget, QVBoxLayout, QGroupBox, QLabel, QFormLayout
+)
+from qgis.PyQt.QtCore import Qt
+
 
 class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # Main vertical layout
         layout = QVBoxLayout()
 
-        # Create each section
-        layout.addWidget(self._create_section("Ins & Outs"))
-        layout.addWidget(self._create_section("Clipping"))
-        layout.addWidget(self._create_section("Splitting"))
-        layout.addWidget(self._create_section("Augmentation"))
-        layout.addWidget(self._create_section("Channel Stacking"))
+        # Add sections: Ins & Outs is NOT expandable, others are
+        layout.addWidget(self._create_section("Ins & Outs", expandable=False))
+        layout.addWidget(self._create_section("Clipping", expandable=True))
+        layout.addWidget(self._create_section("Splitting", expandable=True))
+        layout.addWidget(self._create_section("Augmentation", expandable=True))
+        layout.addWidget(self._create_section("Channel Stacking", expandable=True))
 
         layout.addStretch()
         self.setLayout(layout)
 
-    def _create_section(self, title):
+    def _create_section(self, title, expandable=True):
         group = QGroupBox(title)
-        group.setCheckable(False)  # Set to True if you want collapse/expand via checkbox
-        inner_layout = QFormLayout()
 
-        # Placeholder label for now — replace with actual widgets later
-        inner_layout.addRow(QLabel(f"Controls for {title} go here."))
+        if expandable:
+            group.setCheckable(True)
+            group.setChecked(True)  # Expanded by default
 
-        group.setLayout(inner_layout)
+        content_widget = QWidget()
+        content_layout = QFormLayout()
+        content_layout.addRow(QLabel(f"Controls for {title} go here."))
+        content_widget.setLayout(content_layout)
+
+        wrapper_layout = QVBoxLayout()
+        wrapper_layout.addWidget(content_widget)
+        group.setLayout(wrapper_layout)
+
+        if expandable:
+            # Toggle visibility based on checkbox
+            group.toggled.connect(content_widget.setVisible)
+            content_widget.setVisible(True)
+
         return group
