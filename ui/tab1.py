@@ -1,29 +1,23 @@
+'''
+module: tab1.py
+'''
 from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QLabel
-from qgis.PyQt.QtCore import Qt  
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .tab1_ins_outs import InsAndOutsWidget 
 
 
 class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setFont(iface.mainWindow().font())  # Good here!
 
         layout = QVBoxLayout()
 
         # ----------------------------
-        # Ins & Outs (non-expandable, but shows arrow)
+        # Ins & Outs section (non-expandable, handled in its own widget)
         # ----------------------------
-        ins_section = ExpandableGroupBox("Ins & Outs")
-        ins_section.toggle_button.setChecked(True)           # Always expanded
-        ins_section.toggle_button.setArrowType(Qt.DownArrow)
-        ins_section.toggle_button.setEnabled(False)          # Disable arrow click
-
-        ins_content = SectionContentWidget()
-        ins_content.layout().addRow(QLabel("Controls for Ins & Outs go here."))
-
-        ins_section.setContentLayout(QVBoxLayout())
-        ins_section.content_area.layout().addWidget(ins_content)
-        layout.addWidget(ins_section)
+        layout.addWidget(self._create_ins_outs_section())
 
         # ----------------------------
         # Expandable Sections
@@ -35,6 +29,9 @@ class Tab1Widget(QWidget):
 
         layout.addStretch()
         self.setLayout(layout)
+
+    def _create_ins_outs_section(self):
+        return InsAndOutsWidget()
 
     def _create_expandable_section(self, title):
         section = ExpandableGroupBox(title)

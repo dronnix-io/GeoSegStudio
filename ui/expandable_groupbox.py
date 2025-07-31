@@ -1,3 +1,6 @@
+'''
+module: expandable_groupbox.py
+'''
 from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QToolButton, QFrame, QSizePolicy, QHBoxLayout, QLabel
 from qgis.PyQt.QtCore import Qt
 from .section_content_widget import SectionContentWidget
@@ -5,6 +8,7 @@ from .section_content_widget import SectionContentWidget
 class ExpandableGroupBox(QWidget):
     def __init__(self, title="", parent=None):
         super().__init__(parent)
+        self.setFont(iface.mainWindow().font())  # Good here!
 
         self.toggle_button = QToolButton()
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
