@@ -13,7 +13,7 @@ class DeepLearningDockWidget(QDockWidget):
         layout = QVBoxLayout(main_widget)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(Tab1Widget(), "Model")
+        self.tabs.addTab(Tab1Widget(), "Prepare Data")
         self.tabs.addTab(Tab2Widget(), "Inference")
         self.tabs.addTab(Tab3Widget(), "Results")
 
