@@ -1,7 +1,7 @@
-from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QGroupBox, QLabel, QFormLayout
-)
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QLabel
+from qgis.PyQt.QtCore import Qt  
+from .expandable_groupbox import ExpandableGroupBox
+from .section_content_widget import SectionContentWidget
 
 
 class Tab1Widget(QWidget):
@@ -10,35 +10,39 @@ class Tab1Widget(QWidget):
 
         layout = QVBoxLayout()
 
-        # Add sections: Ins & Outs is NOT expandable, others are
-        layout.addWidget(self._create_section("Ins & Outs", expandable=False))
-        layout.addWidget(self._create_section("Clipping", expandable=True))
-        layout.addWidget(self._create_section("Splitting", expandable=True))
-        layout.addWidget(self._create_section("Augmentation", expandable=True))
-        layout.addWidget(self._create_section("Channel Stacking", expandable=True))
+        # ----------------------------
+        # Ins & Outs (non-expandable, but shows arrow)
+        # ----------------------------
+        ins_section = ExpandableGroupBox("Ins & Outs")
+        ins_section.toggle_button.setChecked(True)           # Always expanded
+        ins_section.toggle_button.setArrowType(Qt.DownArrow)
+        ins_section.toggle_button.setEnabled(False)          # Disable arrow click
+
+        ins_content = SectionContentWidget()
+        ins_content.layout().addRow(QLabel("Controls for Ins & Outs go here."))
+
+        ins_section.setContentLayout(QVBoxLayout())
+        ins_section.content_area.layout().addWidget(ins_content)
+        layout.addWidget(ins_section)
+
+        # ----------------------------
+        # Expandable Sections
+        # ----------------------------
+        layout.addWidget(self._create_expandable_section("Clipping"))
+        layout.addWidget(self._create_expandable_section("Splitting"))
+        layout.addWidget(self._create_expandable_section("Augmentation"))
+        layout.addWidget(self._create_expandable_section("Channel Stacking"))
 
         layout.addStretch()
         self.setLayout(layout)
 
-    def _create_section(self, title, expandable=True):
-        group = QGroupBox(title)
+    def _create_expandable_section(self, title):
+        section = ExpandableGroupBox(title)
 
-        if expandable:
-            group.setCheckable(True)
-            group.setChecked(True)  # Expanded by default
+        content = SectionContentWidget()
+        content.layout().addRow(QLabel(f"Controls for {title} go here."))
 
-        content_widget = QWidget()
-        content_layout = QFormLayout()
-        content_layout.addRow(QLabel(f"Controls for {title} go here."))
-        content_widget.setLayout(content_layout)
+        section.setContentLayout(QVBoxLayout())
+        section.content_area.layout().addWidget(content)
 
-        wrapper_layout = QVBoxLayout()
-        wrapper_layout.addWidget(content_widget)
-        group.setLayout(wrapper_layout)
-
-        if expandable:
-            # Toggle visibility based on checkbox
-            group.toggled.connect(content_widget.setVisible)
-            content_widget.setVisible(True)
-
-        return group
+        return section
