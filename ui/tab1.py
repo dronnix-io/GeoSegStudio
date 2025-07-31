@@ -10,7 +10,6 @@ from .tab1_ins_outs import InsAndOutsWidget
 class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFont(iface.mainWindow().font())  # Good here!
 
         layout = QVBoxLayout()
 

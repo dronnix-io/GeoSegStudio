@@ -15,7 +15,6 @@ from .section_content_widget import SectionContentWidget
 class InsAndOutsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFont(iface.mainWindow().font())  # Good here!
 
         # Main expandable section with disabled toggle
         self.section = ExpandableGroupBox("Ins & Outs")
