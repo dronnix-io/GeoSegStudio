@@ -16,13 +16,13 @@ class InsAndOutsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # Main expandable section with disabled toggle
+        # Main expandable-style section with disabled toggle
         self.section = ExpandableGroupBox("Ins & Outs")
         self.section.toggle_button.setChecked(True)
         self.section.toggle_button.setArrowType(Qt.DownArrow)
-        self.section.toggle_button.setEnabled(False)
+        self.section.toggle_button.setEnabled(False)  # Disables user clicking the arrow
 
-        # Content widget
+        # Section content layout
         self.content = SectionContentWidget()
         self.form = self.content.layout()
 
@@ -47,23 +47,27 @@ class InsAndOutsWidget(QWidget):
 
         self.form.addRow("Output Dir", output_layout)
 
-        # Add content to section
+        # Add content to section and main layout
         self.section.setContentLayout(QVBoxLayout())
         self.section.content_area.layout().addWidget(self.content)
 
-        # Main layout of this widget
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.section)
         self.setLayout(layout)
 
-        # Populate combos
+        # Populate dropdowns
         self._populate_layer_combos()
 
-        # Connect directory picker
+        # Connect file dialog button
         self.output_dir_button.clicked.connect(self._select_output_directory)
 
+        # Connect to QGIS layer changes
+        QgsProject.instance().layersAdded.connect(self._populate_layer_combos)
+        QgsProject.instance().layersRemoved.connect(self._populate_layer_combos)
+
     def _populate_layer_combos(self):
+        """Fills the combo boxes with available raster and vector layers."""
         self.raster_combo.clear()
         self.vector_combo.clear()
 
@@ -79,8 +83,9 @@ class InsAndOutsWidget(QWidget):
             self.output_dir_edit.setText(folder)
 
     def get_selected_inputs(self):
-        """Returns selected raster, vector, and output path values"""
+        """Returns selected layer IDs and output path"""
         raster_id = self.raster_combo.currentData()
         vector_id = self.vector_combo.currentData()
         output_path = self.output_dir_edit.text()
         return raster_id, vector_id, output_path
+
