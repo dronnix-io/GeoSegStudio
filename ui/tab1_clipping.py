@@ -71,6 +71,6 @@ class ClippingWidget(QWidget):
             "pixel_size": self.pixel_size.value(),
             "burn_value": self.burn_value.value(),
             "output_format": self.output_format.currentText(),
-            "cpu_count": self.cpu_count.value(),
+            "cpu_count": self.cpu_spin.value(),
             "prefix": self.prefix.text()
         }

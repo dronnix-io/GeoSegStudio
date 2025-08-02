@@ -2,10 +2,8 @@
 module: tab1.py
 '''
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QScrollArea, QSizePolicy
+    QWidget, QVBoxLayout, QScrollArea, QSizePolicy, QPushButton, QMessageBox
 )
-from .expandable_groupbox import ExpandableGroupBox
-from .section_content_widget import SectionContentWidget
 from .tab1_ins_outs import InsAndOutsWidget
 from .tab1_clipping import ClippingWidget
 from .tab1_splitting import SplittingWidget
@@ -17,43 +15,58 @@ class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # --- Inner content widget inside the scroll area ---
-        content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(10, 10, 10, 10)
-        content_layout.setSpacing(12)
+        self.ins_outs = InsAndOutsWidget()
+        self.clipping = ClippingWidget()
+        self.splitting = SplittingWidget()
+        self.augmentation = AugmentationWidget()
+        self.channel_stacking = ChannelStackingWidget()
 
-        # Section: Ins & Outs (non-expandable)
-        content_layout.addWidget(InsAndOutsWidget())
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Section: Clipping
-        content_layout.addWidget(self._wrap_in_expandable("Clipping", ClippingWidget()))
-
-        # Section: Splitting
-        content_layout.addWidget(self._wrap_in_expandable("Splitting", SplittingWidget()))
-
-        # Section: Augmentation
-        content_layout.addWidget(self._wrap_in_expandable("Augmentation", AugmentationWidget()))
-
-        # Section: Channel Stacking
-        content_layout.addWidget(self._wrap_in_expandable("Channel Stacking", ChannelStackingWidget()))
-
-        content_layout.addStretch()
-
-        # --- Scroll area to wrap the content ---
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setWidget(content_widget)
         scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # --- Final layout of Tab1 ---
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(scroll)
-        self.setLayout(main_layout)
+        scroll_content = QWidget()
+        content_layout = QVBoxLayout(scroll_content)
+        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setSpacing(15)
 
-    def _wrap_in_expandable(self, title, inner_widget):
-        """Utility to create a section with a title and inner content widget"""
-        section = ExpandableGroupBox(title)
-        section.setContentLayout(QVBoxLayout())
-        section.content_area.layout().addWidget(inner_widget)
-        return section
+        content_layout.addWidget(self.ins_outs)
+        content_layout.addWidget(self.clipping)
+        content_layout.addWidget(self.splitting)
+        content_layout.addWidget(self.augmentation)
+        content_layout.addWidget(self.channel_stacking)
+
+        # --- Run button ---
+        run_button = QPushButton("Run")
+        run_button.clicked.connect(self.on_run_clicked)
+        content_layout.addWidget(run_button)
+
+        content_layout.addStretch()
+        scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll)
+
+    def on_run_clicked(self):
+        try:
+            raster_id, vector_id, output_dir = self.ins_outs.get_selected_inputs()
+            clip_params = self.clipping.get_clipping_params()
+            split_percentages = self.splitting.get_split_percentages()
+            augmentations = self.augmentation.selected_methods()
+            stacking_methods = self.channel_stacking.get_selected_methods_with_order()
+
+            # Placeholder: you can now pass them to your backend logic
+            print("=== RUN CONFIGURATION ===")
+            print("Raster ID:", raster_id)
+            print("Vector ID:", vector_id)
+            print("Output Dir:", output_dir)
+            print("Clipping Params:", clip_params)
+            print("Splitting:", split_percentages)
+            print("Augmentations:", augmentations)
+            print("Channel Stacking:", stacking_methods)
+
+            QMessageBox.information(self, "Run Triggered", "Run configuration collected successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Run Error", f"Error while running: {str(e)}")
