@@ -1,7 +1,9 @@
 '''
 module: tab1.py
 '''
-from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QLabel
+from qgis.PyQt.QtWidgets import (
+    QWidget, QVBoxLayout, QLabel, QScrollArea, QSizePolicy
+)
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
 from .tab1_ins_outs import InsAndOutsWidget
@@ -15,46 +17,43 @@ class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        layout = QVBoxLayout()
+        # --- Inner content widget inside the scroll area ---
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setSpacing(12)
 
-        # ----------------------------
-        # Ins & Outs section (non-expandable, handled in its own widget)
-        # ----------------------------
-        layout.addWidget(self._create_ins_outs_section())
+        # Section: Ins & Outs (non-expandable)
+        content_layout.addWidget(InsAndOutsWidget())
 
-        # ----------------------------
-        # Expandable Sections
-        # ----------------------------
-        layout.addWidget(self._create_clipping_section())
-        layout.addWidget(self._create_splitting_section())
-        layout.addWidget(self._create_augmentation_section())
-        layout.addWidget(self._create_channel_stacking_section())
+        # Section: Clipping
+        content_layout.addWidget(self._wrap_in_expandable("Clipping", ClippingWidget()))
 
-        layout.addStretch()
-        self.setLayout(layout)
+        # Section: Splitting
+        content_layout.addWidget(self._wrap_in_expandable("Splitting", SplittingWidget()))
 
-    def _create_ins_outs_section(self):
-        return InsAndOutsWidget()
-    
-    def _create_clipping_section(self):
-        return ClippingWidget()
+        # Section: Augmentation
+        content_layout.addWidget(self._wrap_in_expandable("Augmentation", AugmentationWidget()))
 
-    def _create_splitting_section(self):
-        return SplittingWidget()
-    
-    def _create_augmentation_section(self):
-        return AugmentationWidget()
-    
-    def _create_channel_stacking_section(self):
-        return ChannelStackingWidget()
+        # Section: Channel Stacking
+        content_layout.addWidget(self._wrap_in_expandable("Channel Stacking", ChannelStackingWidget()))
 
-    # def _create_expandable_section(self, title):
-    #     section = ExpandableGroupBox(title)
+        content_layout.addStretch()
 
-    #     content = SectionContentWidget()
-    #     content.layout().addRow(QLabel(f"Controls for {title} go here."))
+        # --- Scroll area to wrap the content ---
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(content_widget)
+        scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    #     section.setContentLayout(QVBoxLayout())
-    #     section.content_area.layout().addWidget(content)
+        # --- Final layout of Tab1 ---
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(scroll)
+        self.setLayout(main_layout)
 
-    #     return section
+    def _wrap_in_expandable(self, title, inner_widget):
+        """Utility to create a section with a title and inner content widget"""
+        section = ExpandableGroupBox(title)
+        section.setContentLayout(QVBoxLayout())
+        section.content_area.layout().addWidget(inner_widget)
+        return section
