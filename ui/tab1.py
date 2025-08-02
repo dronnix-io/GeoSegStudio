@@ -8,6 +8,7 @@ from .tab1_ins_outs import InsAndOutsWidget
 from .tab1_clipping import ClippingWidget
 from .tab1_splitting import SplittingWidget
 from .tab1_augmentation import AugmentationWidget
+from .tab1_channel_stacking import ChannelStackingWidget
 
 
 class Tab1Widget(QWidget):
@@ -27,7 +28,7 @@ class Tab1Widget(QWidget):
         layout.addWidget(self._create_clipping_section())
         layout.addWidget(self._create_splitting_section())
         layout.addWidget(self._create_augmentation_section())
-        layout.addWidget(self._create_expandable_section("Channel Stacking"))
+        layout.addWidget(self._create_channel_stacking_section())
 
         layout.addStretch()
         self.setLayout(layout)
@@ -43,14 +44,17 @@ class Tab1Widget(QWidget):
     
     def _create_augmentation_section(self):
         return AugmentationWidget()
+    
+    def _create_channel_stacking_section(self):
+        return ChannelStackingWidget()
 
-    def _create_expandable_section(self, title):
-        section = ExpandableGroupBox(title)
+    # def _create_expandable_section(self, title):
+    #     section = ExpandableGroupBox(title)
 
-        content = SectionContentWidget()
-        content.layout().addRow(QLabel(f"Controls for {title} go here."))
+    #     content = SectionContentWidget()
+    #     content.layout().addRow(QLabel(f"Controls for {title} go here."))
 
-        section.setContentLayout(QVBoxLayout())
-        section.content_area.layout().addWidget(content)
+    #     section.setContentLayout(QVBoxLayout())
+    #     section.content_area.layout().addWidget(content)
 
-        return section
+    #     return section
