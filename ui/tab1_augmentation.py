@@ -21,6 +21,7 @@ class AugmentationWidget(QWidget):
         self.section.content_area.layout().addWidget(self.content)
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.section)
         self.setLayout(layout)
 
