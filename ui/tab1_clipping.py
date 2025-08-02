@@ -10,7 +10,7 @@ from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
 
 
-class ClippingSection(QWidget):
+class ClippingWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 

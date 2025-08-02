@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QLabel
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
 from .tab1_ins_outs import InsAndOutsWidget
-from .tab1_clipping import ClippingSection
+from .tab1_clipping import ClippingWidget
 from .tab1_splitting import SplittingWidget
 
 
@@ -23,7 +23,7 @@ class Tab1Widget(QWidget):
         # ----------------------------
         # Expandable Sections
         # ----------------------------
-        layout.addWidget(ClippingSection())
+        layout.addWidget(ClippingWidget())
         layout.addWidget(SplittingWidget())
         layout.addWidget(self._create_expandable_section("Augmentation"))
         layout.addWidget(self._create_expandable_section("Channel Stacking"))
