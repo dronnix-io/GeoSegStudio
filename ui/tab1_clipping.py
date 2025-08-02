@@ -1,6 +1,7 @@
 '''
 module: tab1_clipping.py
 '''
+import multiprocessing
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QSpinBox, QDoubleSpinBox,
     QComboBox, QLineEdit
@@ -44,10 +45,12 @@ class ClippingSection(QWidget):
         self.output_format.addItems(["geocoded", "array"])
         form.addRow("Output Format", self.output_format)
 
-        # Number of CPUs
-        self.cpu_count = QSpinBox()
-        self.cpu_count.setRange(1, 64)  # adjust based on target system
-        form.addRow("Number of CPUs", self.cpu_count)
+        # Number of CPUs (max system CPUs - 2)
+        max_cpus = max(1, multiprocessing.cpu_count() - 2)
+        self.cpu_spin = QSpinBox()
+        self.cpu_spin.setMinimum(1)
+        self.cpu_spin.setMaximum(max_cpus)
+        form.addRow("Number of CPUs", self.cpu_spin)
 
         # Name Prefix
         self.prefix = QLineEdit()
