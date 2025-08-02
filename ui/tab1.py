@@ -7,6 +7,7 @@ from .section_content_widget import SectionContentWidget
 from .tab1_ins_outs import InsAndOutsWidget
 from .tab1_clipping import ClippingWidget
 from .tab1_splitting import SplittingWidget
+from .tab1_augmentation import AugmentationWidget
 
 
 class Tab1Widget(QWidget):
@@ -25,7 +26,7 @@ class Tab1Widget(QWidget):
         # ----------------------------
         layout.addWidget(self._create_clipping_section())
         layout.addWidget(self._create_splitting_section())
-        layout.addWidget(self._create_expandable_section("Augmentation"))
+        layout.addWidget(self._create_augmentation_section())
         layout.addWidget(self._create_expandable_section("Channel Stacking"))
 
         layout.addStretch()
@@ -39,6 +40,9 @@ class Tab1Widget(QWidget):
 
     def _create_splitting_section(self):
         return SplittingWidget()
+    
+    def _create_augmentation_section(self):
+        return AugmentationWidget()
 
     def _create_expandable_section(self, title):
         section = ExpandableGroupBox(title)
