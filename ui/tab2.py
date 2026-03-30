@@ -14,6 +14,7 @@ from .tab2_training_config import TrainingConfigWidget
 from .tab2_checkpoints     import CheckpointsWidget
 from .tab2_hardware        import HardwareWidget
 from .tab2_run_monitor     import RunMonitorWidget
+from .tab2_plots           import TrainingPlotWidget
 
 
 class Tab2Widget(QWidget):
@@ -26,6 +27,7 @@ class Tab2Widget(QWidget):
         self.checkpoints     = CheckpointsWidget()
         self.hardware        = HardwareWidget()
         self.run_monitor     = RunMonitorWidget()
+        self.plots           = TrainingPlotWidget()
 
         self._worker = None  # TrainingWorker instance while training
 
@@ -47,6 +49,7 @@ class Tab2Widget(QWidget):
         content_layout.addWidget(self.checkpoints)
         content_layout.addWidget(self.hardware)
         content_layout.addWidget(self.run_monitor)
+        content_layout.addWidget(self.plots)
         content_layout.addStretch()
 
         scroll.setWidget(scroll_content)
@@ -71,10 +74,13 @@ class Tab2Widget(QWidget):
         self._worker = TrainingWorker(config, parent=self)
         self._worker.phase_update.connect(self.run_monitor.update_phase)
         self._worker.epoch_done.connect(self.run_monitor.add_epoch_row)
+        self._worker.epoch_done.connect(self.plots.add_epoch)
         self._worker.batch_progress.connect(self.run_monitor.update_batch_progress)
         self._worker.training_finished.connect(self._on_training_finished)
 
         self.run_monitor.reset_monitor()
+        self.run_monitor.set_output_paths(config["output_dir"], config["model_name"])
+        self.plots.reset()
         self.run_monitor.set_running(True, config["epochs"])
         self._worker.start()
 
@@ -156,4 +162,81 @@ class Tab2Widget(QWidget):
             "num_workers": hw_cfg["num_workers"],
         }
 
+        # Checkpoint compatibility — must be the last check so config is fully built
+        if config.get("resume_path"):
+            compat_error = self._check_checkpoint_compat(config)
+            if compat_error:
+                return None, compat_error
+
         return config, None
+
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _check_checkpoint_compat(config: dict):
+        """
+        Loads the resume checkpoint and verifies that its saved architecture,
+        input band count, and tile size all match the current UI settings.
+
+        Returns None on success, or a detailed human-readable error string
+        that tells the user exactly what is wrong and how to fix it.
+        """
+        path = config["resume_path"]
+
+        try:
+            import torch
+            data = torch.load(path, map_location="cpu")
+        except Exception as exc:
+            return (
+                f"Could not read the checkpoint file:\n  {exc}\n\n"
+                "Make sure the file is a valid .pth checkpoint saved by this plugin."
+            )
+
+        saved_cfg = data.get("config", {})
+
+        # Collect all mismatches before reporting so the user sees everything at once
+        issues = []
+
+        # --- Architecture ----------------------------------------------------
+        saved_arch = data.get("architecture") or saved_cfg.get("architecture")
+        if saved_arch and saved_arch != config["architecture"]:
+            issues.append(
+                f"Architecture mismatch\n"
+                f"  Checkpoint was trained with : {saved_arch}\n"
+                f"  You currently have selected : {config['architecture']}\n"
+                f"  Fix: Change the Architecture dropdown to '{saved_arch}'."
+            )
+
+        # --- Input bands (in_channels) ---------------------------------------
+        saved_bands = saved_cfg.get("in_channels")
+        if saved_bands is not None and saved_bands != config["in_channels"]:
+            issues.append(
+                f"Input band count mismatch\n"
+                f"  Checkpoint expects : {saved_bands} band(s)\n"
+                f"  Current dataset has: {config['in_channels']} band(s)\n"
+                f"  Fix: Select a dataset version that has {saved_bands} band(s), "
+                f"or choose a checkpoint trained on {config['in_channels']}-band data."
+            )
+
+        # --- Tile size (img_size) --------------------------------------------
+        saved_size = saved_cfg.get("img_size")
+        if saved_size is not None and saved_size != config["img_size"]:
+            issues.append(
+                f"Tile size mismatch\n"
+                f"  Checkpoint expects : {saved_size} × {saved_size} px tiles\n"
+                f"  Current dataset has: {config['img_size']} × {config['img_size']} px tiles\n"
+                f"  Fix: Select a dataset version clipped to {saved_size} × {saved_size} px, "
+                f"or choose a checkpoint trained on {config['img_size']} × {config['img_size']} px tiles."
+            )
+
+        if not issues:
+            return None
+
+        header = (
+            f"The selected checkpoint is not compatible with the current settings.\n"
+            f"Found {len(issues)} problem(s):\n"
+            f"{'─' * 52}\n\n"
+        )
+        return header + "\n\n".join(
+            f"[{i + 1}] {issue}" for i, issue in enumerate(issues)
+        )

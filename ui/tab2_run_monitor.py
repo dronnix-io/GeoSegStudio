@@ -9,6 +9,9 @@ an epoch progress bar, a live-updating metrics table, and a status label.
 The training backend will call the public update methods on this widget
 via Qt signals once the worker thread is wired up.
 """
+import csv
+import os
+
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QProgressBar, QLabel, QTableWidget, QTableWidgetItem,
@@ -18,6 +21,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 
 from .expandable_groupbox import ExpandableGroupBox
+
+_CSV_HEADERS = ["Epoch", "Train Loss", "Val Loss", "Val IoU", "Val F1"]
 
 
 # Metrics table column definitions: (header label, alignment)
@@ -33,6 +38,8 @@ _COLUMNS = [
 class RunMonitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self._csv_path = None   # set by set_output_paths() before each run
 
         # Non-collapsible section — toggle button disabled like InsAndOuts
         self.section = ExpandableGroupBox("Run & Monitor")
@@ -158,6 +165,9 @@ class RunMonitorWidget(QWidget):
         self.batch_bar.setValue(0)   # reset batch bar at start of next epoch
         self.table.scrollToBottom()
 
+        # Append row to CSV log
+        self._write_csv_row(epoch, train_loss, val_loss, val_iou, val_f1)
+
     def set_status(self, message: str, error: bool = False):
         """Shows a status message below the progress bar."""
         color = "red" if error else "green"
@@ -168,6 +178,22 @@ class RunMonitorWidget(QWidget):
         self.progress_bar.setVisible(False)
         self.batch_bar.setVisible(False)
         self.phase_label.setVisible(False)
+
+    def set_output_paths(self, output_dir: str, model_name: str):
+        """
+        Called before training starts to set up the CSV log file.
+        Creates the file and writes the header row.
+        """
+        if not output_dir:
+            self._csv_path = None
+            return
+        os.makedirs(output_dir, exist_ok=True)
+        self._csv_path = os.path.join(output_dir, f"{model_name}_training_log.csv")
+        try:
+            with open(self._csv_path, "w", newline="") as f:
+                csv.writer(f).writerow(_CSV_HEADERS)
+        except Exception:
+            self._csv_path = None
 
     def update_phase(self, message: str):
         """Updates the phase status label (e.g. 'Building model...')."""
@@ -197,6 +223,22 @@ class RunMonitorWidget(QWidget):
     # -------------------------------------------------------------------------
     # Internal helpers
     # -------------------------------------------------------------------------
+
+    def _write_csv_row(self, epoch, train_loss, val_loss, val_iou, val_f1):
+        """Appends one epoch row to the CSV log file."""
+        if not self._csv_path:
+            return
+        try:
+            with open(self._csv_path, "a", newline="") as f:
+                csv.writer(f).writerow([
+                    epoch,
+                    f"{train_loss:.6f}",
+                    f"{val_loss:.6f}",
+                    f"{val_iou:.6f}",
+                    f"{val_f1:.6f}",
+                ])
+        except Exception:
+            pass
 
     def _highlight_best_iou(self):
         """Colours the row with the highest Val IoU light green."""
