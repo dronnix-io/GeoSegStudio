@@ -115,6 +115,11 @@ def patch_sys_path() -> bool:
     Prepends the env site-packages to sys.path so subsequent
     ``import torch`` calls resolve to the env installation.
 
+    Also redirects multiprocessing.spawn to use the env Python executable
+    instead of sys.executable (which inside QGIS is qgis.exe).  Without
+    this, any torch/CUDA operation that spawns a worker process opens a
+    new QGIS window instead of a Python process.
+
     Returns True if the path was added, False if not found.
     """
     sp = _site_packages()
@@ -123,6 +128,14 @@ def patch_sys_path() -> bool:
     sp_str = str(sp)
     if sp_str not in sys.path:
         sys.path.insert(0, sp_str)
+
+    # Redirect multiprocessing spawn to the env Python, not qgis.exe.
+    try:
+        import multiprocessing
+        multiprocessing.set_executable(get_env_python())
+    except Exception:
+        pass
+
     return True
 
 

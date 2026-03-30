@@ -59,6 +59,12 @@ class RunMonitorWidget(QWidget):
         btn_row.addWidget(self.stop_btn)
         inner_layout.addLayout(btn_row)
 
+        # --- Phase status label ----------------------------------------------
+        self.phase_label = QLabel("")
+        self.phase_label.setAlignment(Qt.AlignCenter)
+        self.phase_label.setVisible(False)
+        inner_layout.addWidget(self.phase_label)
+
         # --- Epoch progress bar ----------------------------------------------
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
@@ -66,6 +72,14 @@ class RunMonitorWidget(QWidget):
         self.progress_bar.setFormat("Epoch %v / %m")
         self.progress_bar.setVisible(False)
         inner_layout.addWidget(self.progress_bar)
+
+        # --- Batch progress bar (within-epoch) -------------------------------
+        self.batch_bar = QProgressBar()
+        self.batch_bar.setRange(0, 100)
+        self.batch_bar.setValue(0)
+        self.batch_bar.setFormat("Train — Batch %v / %m")
+        self.batch_bar.setVisible(False)
+        inner_layout.addWidget(self.batch_bar)
 
         # --- Status label ----------------------------------------------------
         self.status_label = QLabel("")
@@ -107,7 +121,14 @@ class RunMonitorWidget(QWidget):
         if running:
             self.progress_bar.setRange(0, total_epochs)
             self.progress_bar.setValue(0)
+            self.batch_bar.setValue(0)
+            self.batch_bar.setVisible(True)
+            self.phase_label.setText("Starting...")
+            self.phase_label.setVisible(True)
             self.status_label.setVisible(False)
+        else:
+            self.phase_label.setVisible(False)
+            self.batch_bar.setVisible(False)
 
     def add_epoch_row(
         self,
@@ -134,6 +155,7 @@ class RunMonitorWidget(QWidget):
         self._highlight_best_iou()
 
         self.progress_bar.setValue(epoch)
+        self.batch_bar.setValue(0)   # reset batch bar at start of next epoch
         self.table.scrollToBottom()
 
     def set_status(self, message: str, error: bool = False):
@@ -144,6 +166,19 @@ class RunMonitorWidget(QWidget):
         )
         self.status_label.setVisible(True)
         self.progress_bar.setVisible(False)
+        self.batch_bar.setVisible(False)
+        self.phase_label.setVisible(False)
+
+    def update_phase(self, message: str):
+        """Updates the phase status label (e.g. 'Building model...')."""
+        self.phase_label.setText(message)
+        self.phase_label.setVisible(True)
+
+    def update_batch_progress(self, current: int, total: int, phase: str):
+        """Updates the within-epoch batch progress bar."""
+        self.batch_bar.setRange(0, total)
+        self.batch_bar.setValue(current)
+        self.batch_bar.setFormat(f"{phase} — Batch %v / %m")
 
     def reset_monitor(self):
         """Clears the table and resets all monitor widgets to idle state."""
@@ -151,6 +186,10 @@ class RunMonitorWidget(QWidget):
         self.table.setVisible(False)
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(False)
+        self.batch_bar.setValue(0)
+        self.batch_bar.setVisible(False)
+        self.phase_label.setText("")
+        self.phase_label.setVisible(False)
         self.status_label.setVisible(False)
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)

@@ -94,17 +94,14 @@ class HardwareWidget(QWidget):
         self.form.addRow("", self.device_hint)
 
         # --- Dataloader workers ----------------------------------------------
-        default_workers = max(0, min(4, (os.cpu_count() or 1) - 1))
-
+        # Hidden from the UI for now: worker processes always crash inside
+        # QGIS because sys.executable is qgis.exe, not python.exe.
+        # num_workers is hardcoded to 0 in dataset.py until this is resolved.
         self.workers_spin = QSpinBox()
         self.workers_spin.setRange(0, 16)
-        self.workers_spin.setValue(default_workers)
-        self.workers_spin.setToolTip(
-            "Number of parallel processes used to load tiles during training.\n"
-            "Higher values speed up data loading on multi-core machines.\n"
-            "Set to 0 if you experience issues on Windows."
-        )
-        self.form.addRow("Workers", self.workers_spin)
+        self.workers_spin.setValue(0)
+        self.workers_spin.setVisible(False)
+        # (label row intentionally not added to form)
 
         # --- Assemble section ------------------------------------------------
         section_layout = QVBoxLayout()
