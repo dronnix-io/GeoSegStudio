@@ -1,0 +1,25 @@
+# Deep Learning Plugin — PyTorch installation reference
+#
+# These packages are installed automatically by the plugin's setup dialog
+# into the isolated  env/  virtual environment.
+#
+# Do NOT run "pip install -r requirements.txt" directly into the system Python.
+# The plugin manages the env/ folder itself.
+#
+# ── Manual install commands ──────────────────────────────────────────────────
+#
+#  NVIDIA GPU — CUDA 11.8  (GTX/RTX 10xx, 20xx, 30xx, older drivers)
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#
+#  NVIDIA GPU — CUDA 12.1  (RTX 30xx, 40xx)
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#
+#  NVIDIA GPU — CUDA 12.4  (RTX 40xx, latest drivers)
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+#
+#  CPU only  (no NVIDIA GPU / AMD / Intel / unsure)
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#
+# ─────────────────────────────────────────────────────────────────────────────
+torch
+torchvision

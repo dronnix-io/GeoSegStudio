@@ -1,13 +1,15 @@
-'''
+"""
 module: tab1_clipping.py
-'''
+"""
 import multiprocessing
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QSpinBox, QDoubleSpinBox,
-    QComboBox, QLineEdit
+    QWidget, QVBoxLayout, QLabel, QSpinBox,
+    QComboBox, QPushButton, QProgressBar
 )
+from qgis.PyQt.QtCore import Qt
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from ..DL.constants import SUPPORTED_SIZES
 
 
 class ClippingWidget(QWidget):
@@ -19,58 +21,101 @@ class ClippingWidget(QWidget):
         self.content = SectionContentWidget()
         form = self.content.layout()
 
-        # Window Size (max 10000)
-        self.window_size = QSpinBox()
-        self.window_size.setRange(1, 10000)
+        # Window Size — restricted to sizes supported by all model architectures
+        self.window_size = QComboBox()
+        for size in SUPPORTED_SIZES:
+            self.window_size.addItem(str(size), size)
+        self.window_size.setCurrentIndex(SUPPORTED_SIZES.index(256))   # default 256
+        self.window_size.setToolTip(
+            "Tile size in pixels. Only sizes supported by the model "
+            "architectures are available: " + ", ".join(str(s) for s in SUPPORTED_SIZES)
+        )
         form.addRow("Window Size (px)", self.window_size)
 
         # Stride
         self.stride = QSpinBox()
         self.stride.setRange(1, 10000)
+        self.stride.setValue(128)
         form.addRow("Stride (px)", self.stride)
-
-        # Output Pixel Size
-        self.pixel_size = QDoubleSpinBox()
-        self.pixel_size.setRange(0.0001, 10000)
-        self.pixel_size.setDecimals(4)
-        form.addRow("Output Pixel Size", self.pixel_size)
 
         # Burn Value
         self.burn_value = QSpinBox()
         self.burn_value.setRange(1, 255)
+        self.burn_value.setValue(1)
         form.addRow("Burn Value (1–255)", self.burn_value)
 
-        # Output Format (geocoded or array)
+        # Output Format
         self.output_format = QComboBox()
         self.output_format.addItems(["geocoded", "array"])
         form.addRow("Output Format", self.output_format)
 
-        # Number of CPUs (max system CPUs - 2)
+        # Number of CPUs
         max_cpus = max(1, multiprocessing.cpu_count() - 2)
         self.cpu_spin = QSpinBox()
         self.cpu_spin.setMinimum(1)
         self.cpu_spin.setMaximum(max_cpus)
         form.addRow("Number of CPUs", self.cpu_spin)
 
-        # Name Prefix
-        self.prefix = QLineEdit()
-        form.addRow("Name Prefix", self.prefix)
+        # --- Apply button + progress bar -------------------------------------
+        bottom_layout = QVBoxLayout()
+        bottom_layout.setContentsMargins(0, 6, 0, 0)
+        bottom_layout.setSpacing(4)
 
-        self.section.setContentLayout(QVBoxLayout())
-        self.section.content_area.layout().addWidget(self.content)
+        self.apply_btn = QPushButton("Apply Clipping")
+        bottom_layout.addWidget(self.apply_btn)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(False)
+        bottom_layout.addWidget(self.progress_bar)
+
+        self.status_label = QLabel("")
+        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setVisible(False)
+        bottom_layout.addWidget(self.status_label)
+
+        # Assemble section
+        section_layout = QVBoxLayout()
+        section_layout.setContentsMargins(0, 0, 0, 0)
+        section_layout.addWidget(self.content)
+        section_layout.addLayout(bottom_layout)
+
+        self.section.setContentLayout(section_layout)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.section)
         self.setLayout(layout)
 
-    def get_clipping_params(self):
+    # -------------------------------------------------------------------------
+    # State helpers  (called by tab1.py)
+    # -------------------------------------------------------------------------
+
+    def set_running(self, running: bool):
+        self.apply_btn.setEnabled(not running)
+        self.progress_bar.setVisible(running)
+        self.status_label.setVisible(False)
+        if running:
+            self.progress_bar.setValue(0)
+
+    def set_status(self, message: str, error: bool = False):
+        color = "red" if error else "green"
+        self.status_label.setText(
+            f"<span style='color:{color}'>{message}</span>"
+        )
+        self.status_label.setVisible(True)
+        self.progress_bar.setVisible(False)
+
+    # -------------------------------------------------------------------------
+    # Data getter
+    # -------------------------------------------------------------------------
+
+    def get_clipping_params(self) -> dict:
         return {
-            "window_size": self.window_size.value(),
-            "stride": self.stride.value(),
-            "pixel_size": self.pixel_size.value(),
-            "burn_value": self.burn_value.value(),
+            "window_size":   self.window_size.currentData(),   # int from SUPPORTED_SIZES
+            "stride":        self.stride.value(),
+            "burn_value":    self.burn_value.value(),
             "output_format": self.output_format.currentText(),
-            "cpu_count": self.cpu_spin.value(),
-            "prefix": self.prefix.text()
+            "cpu_count":     self.cpu_spin.value(),
         }

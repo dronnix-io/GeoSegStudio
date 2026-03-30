@@ -1,5 +1,7 @@
 .venv
 .vscode
 data
+env/
 __pycache__/
 ui/__pycache__/
+DL/__pycache__/

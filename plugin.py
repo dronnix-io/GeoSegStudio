@@ -3,6 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 from .ui.main_ui import DeepLearningDockWidget
 from qgis.PyQt.QtCore import Qt
 
+
 class DeepLearningPlugin:
     def __init__(self, iface):
         self.iface = iface
@@ -23,8 +24,41 @@ class DeepLearningPlugin:
             self.dock_widget = None
 
     def show_dock(self):
+        # Check / bootstrap the PyTorch environment on first open
+        self._ensure_env()
+
         if self.dock_widget is None:
             self.dock_widget = DeepLearningDockWidget(self.iface)
             self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
         self.dock_widget.show()
         self.dock_widget.raise_()
+
+    # -------------------------------------------------------------------------
+    # Environment bootstrap
+    # -------------------------------------------------------------------------
+
+    def _ensure_env(self):
+        """
+        Shows the install dialog if the env is not ready yet.
+        Patches sys.path when the env already exists so torch is importable.
+        """
+        try:
+            from .DL.env_manager import is_env_ready, patch_sys_path
+        except Exception:
+            return  # env_manager unavailable — skip silently
+
+        if is_env_ready():
+            patch_sys_path()
+            return
+
+        # Env not ready — show the setup dialog
+        try:
+            from .ui.install_dialog import InstallDialog
+        except Exception:
+            return
+
+        dlg = InstallDialog(self.iface.mainWindow())
+        dlg.exec_()
+
+        if dlg.was_installed():
+            patch_sys_path()
