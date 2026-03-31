@@ -207,7 +207,10 @@ class Tab4Widget(QWidget):
         out_cfg = self.output.get_output_config()
 
         if not out_cfg["output_path"]:
-            return None, "Please choose an output path."
+            return None, (
+                "Please set an output folder and name.\n"
+                "Use the Output section to select a folder and enter a base filename."
+            )
 
         config = {
             "checkpoint_path": checkpoint_path,
