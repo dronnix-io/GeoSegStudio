@@ -20,7 +20,7 @@ class DeepLearningPlugin:
         # Stop any running training worker before destroying the dock widget.
         # Destroying Qt objects while a QThread is alive causes a crash.
         if self.dock_widget is not None:
-            for attr in ("tab2", "tab3"):
+            for attr in ("tab2", "tab3", "tab4"):
                 try:
                     worker = getattr(self.dock_widget, attr)._worker
                     if worker is not None and worker.isRunning():

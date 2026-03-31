@@ -124,9 +124,9 @@ class EvalResultsWidget(QWidget):
         cm = results.get("confusion", {})
         if cm:
             self.cm_lbl.setText(
-                f"TP: {cm.get('TP', 0):,}  &nbsp;|&nbsp;  "
-                f"FP: {cm.get('FP', 0):,}  &nbsp;|&nbsp;  "
-                f"TN: {cm.get('TN', 0):,}  &nbsp;|&nbsp;  "
+                f"TP: {cm.get('TP', 0):,}   |   "
+                f"FP: {cm.get('FP', 0):,}   |   "
+                f"TN: {cm.get('TN', 0):,}   |   "
                 f"FN: {cm.get('FN', 0):,}"
             )
             self.cm_lbl.setVisible(True)

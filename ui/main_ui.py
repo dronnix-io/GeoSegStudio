@@ -19,12 +19,13 @@ class DeepLearningDockWidget(QDockWidget):
 
         self.tab2 = Tab2Widget()
         self.tab3 = Tab3Widget()
+        self.tab4 = Tab4Widget()
 
         self.tabs = QTabWidget()
         self.tabs.addTab(Tab1Widget(),  "Prepare")
         self.tabs.addTab(self.tab2,     "Train")
         self.tabs.addTab(self.tab3,     "Evaluate")
-        self.tabs.addTab(Tab4Widget(),  "Predict")
+        self.tabs.addTab(self.tab4,     "Predict")
 
         layout.addWidget(self.tabs)
         self.setWidget(main_widget)
