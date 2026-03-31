@@ -140,9 +140,9 @@ class EvalSamplesWidget(QWidget):
         layout.addWidget(title)
 
         # Figure with 3 subplots
-        fig = Figure(figsize=(7.5, 2.4))
+        fig = Figure(figsize=(7.5, 2.9))
         canvas = FigureCanvas(fig)
-        canvas.setMinimumHeight(180)
+        canvas.setMinimumHeight(220)
         axes = fig.subplots(1, 3)
 
         image    = sample.get("image",     None)   # (C,H,W)
@@ -170,7 +170,8 @@ class EvalSamplesWidget(QWidget):
         ax.set_title("Prediction", fontsize=8)
         ax.axis("off")
 
-        fig.tight_layout(pad=0.5)
+        # rect leaves headroom at the top so subplot titles are not clipped
+        fig.tight_layout(pad=0.8, rect=[0, 0, 1, 0.93])
         canvas.draw()
         layout.addWidget(canvas)
 
