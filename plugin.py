@@ -21,13 +21,17 @@ class DeepLearningPlugin:
         # Destroying Qt objects while a QThread is alive causes a crash.
         if self.dock_widget is not None:
             for attr in ("tab2", "tab3", "tab4"):
-                try:
-                    worker = getattr(self.dock_widget, attr)._worker
-                    if worker is not None and worker.isRunning():
-                        worker.stop()
-                        worker.wait(3000)
-                except Exception:
-                    pass
+                tab = getattr(self.dock_widget, attr, None)
+                if tab is None:
+                    continue
+                for worker_attr in ("_worker", "_worker_pp"):
+                    try:
+                        worker = getattr(tab, worker_attr, None)
+                        if worker is not None and worker.isRunning():
+                            worker.stop()
+                            worker.wait(3000)
+                    except Exception:
+                        pass
 
         self.iface.removePluginMenu("Deep Learning Plugin", self.action)
         self.iface.removeToolBarIcon(self.action)
