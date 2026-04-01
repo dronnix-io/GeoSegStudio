@@ -30,10 +30,10 @@ class Palette:
     PRIMARY_LIGHT  = "#EFF6FF"   # tinted backgrounds
 
     # Section header
-    HEADER_BG      = "#1E293B"   # dark slate header background
-    HEADER_BORDER  = "#38BDF8"   # sky-400 left-border accent (visible on dark)
+    HEADER_BG      = "#1E40AF"   # cobalt blue header — harmonises with QGIS sidebar
+    HEADER_BORDER  = "#93C5FD"   # blue-300 left-border accent (visible on dark blue)
     HEADER_TEXT    = "#F1F5F9"   # near-white title text
-    HEADER_SEP     = "#334155"   # subtle separator line on dark bg
+    HEADER_SEP     = "#1D4ED8"   # subtle separator line on dark blue bg
 
     # Content area
     CONTENT_BG     = "#FFFFFF"
@@ -73,7 +73,7 @@ def style_primary_btn(btn):
     Light default, darkens on hover."""
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: #7C3AED;
+            background-color: #6366F1;
             color: white;
             border: none;
             border-radius: 4px;
@@ -82,10 +82,10 @@ def style_primary_btn(btn):
             font-size: 11px;
         }}
         QPushButton:hover {{
-            background-color: #6D28D9;
+            background-color: #4F46E5;
         }}
         QPushButton:pressed {{
-            background-color: #5B21B6;
+            background-color: #4338CA;
         }}
         QPushButton:disabled {{
             background-color: {Palette.DISABLED_BG};
