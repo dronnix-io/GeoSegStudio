@@ -31,7 +31,7 @@ class Palette:
 
     # Section header
     HEADER_BG      = "#DBEAFE"   # blue-100 — very light blue tint, subtle/transparent feel
-    HEADER_BORDER  = "#2563EB"   # blue-600 left-border accent
+    HEADER_BORDER  = "#93C5FD"   # blue-300 left-border accent — matches pale header tone
     HEADER_TEXT    = "#1E3A5F"   # dark navy text — readable on light blue bg
     HEADER_SEP     = "#BFDBFE"   # blue-200 separator
 
