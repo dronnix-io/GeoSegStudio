@@ -73,7 +73,7 @@ def style_primary_btn(btn):
     Light default, darkens on hover."""
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: #64748B;
+            background-color: #7C3AED;
             color: white;
             border: none;
             border-radius: 4px;
@@ -82,10 +82,10 @@ def style_primary_btn(btn):
             font-size: 11px;
         }}
         QPushButton:hover {{
-            background-color: #475569;
+            background-color: #6D28D9;
         }}
         QPushButton:pressed {{
-            background-color: #334155;
+            background-color: #5B21B6;
         }}
         QPushButton:disabled {{
             background-color: {Palette.DISABLED_BG};
