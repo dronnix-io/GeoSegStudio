@@ -13,6 +13,7 @@ class DeepLearningDockWidget(QDockWidget):
         self.setFont(iface.mainWindow().font())  # Good here!
         self.iface = iface
         self.setObjectName("DeepLearningDockWidget")
+        self.setMinimumWidth(500)
 
         main_widget = QWidget()
         layout = QVBoxLayout(main_widget)
