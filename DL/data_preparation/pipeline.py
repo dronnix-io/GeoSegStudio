@@ -95,9 +95,7 @@ def run_all(config: dict,
     # Wire the freshly produced clipping version into the splitting config.
     split_config = config.copy()
     split_config["clipping_version"] = clip_result["version"]
-    split_config["prefix"] = (
-        config.get("clip_params", {}).get("prefix", "").strip() or "dataset"
-    )
+    split_config["prefix"] = config.get("prefix", "dataset")
 
     split_result = run_splitting(
         split_config,

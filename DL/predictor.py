@@ -214,21 +214,13 @@ class PredictionWorker(QThread):
         output_paths  = []
 
         if output_format in ("raster", "both"):
-            raster_path = (
-                output_path + ".tif"
-                if output_format == "both"
-                else output_path
-            )
+            raster_path = output_path + ".tif"
             self.phase_update.emit("Saving raster…")
             _save_raster(binary_mask, raster_path, geo_trans, projection)
             output_paths.append(raster_path)
 
         if output_format in ("vector", "both"):
-            vector_path = (
-                output_path + ".gpkg"
-                if output_format == "both"
-                else output_path
-            )
+            vector_path = output_path + ".gpkg"
             self.phase_update.emit("Polygonizing prediction…")
 
             # Polygonize from a temp in-memory raster
@@ -329,11 +321,24 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
         srs.ImportFromWkt(projection)
 
     layer = out_ds.CreateLayer("prediction", srs=srs, geom_type=ogr.wkbPolygon)
-    field = ogr.FieldDefn("class", ogr.OFTInteger)
-    layer.CreateField(field)
+    layer.CreateField(ogr.FieldDefn("class", ogr.OFTInteger))
+    layer.CreateField(ogr.FieldDefn("area_crs_units2", ogr.OFTReal))
 
     # Pass src_band as the mask: only non-zero pixels are polygonized
     gdal.Polygonize(src_band, src_band, layer, 0, [], callback=None)
+
+    # Fill the area field so users can see the exact value the postprocessor uses
+    layer.ResetReading()
+    for feat in layer:
+        geom = feat.GetGeometryRef()
+        if geom:
+            from shapely import wkb as _wkb
+            try:
+                shp = _wkb.loads(bytes(geom.ExportToWkb()))
+                feat.SetField("area_crs_units2", shp.area)
+                layer.SetFeature(feat)
+            except Exception:
+                pass
 
     out_ds.FlushCache()
     out_ds  = None

@@ -215,8 +215,8 @@ class PostProcessWidget(QWidget):
         btn_row.setSpacing(8)
 
         self.apply_btn = QPushButton("Apply Post-Processing")
-        self.apply_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         style_primary_btn(self.apply_btn)
+        self.apply_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -267,8 +267,7 @@ class PostProcessWidget(QWidget):
         self.simplify_check.toggled.connect(self.simplify_spin.setEnabled)
         self.smooth_check.toggled.connect(self.smooth_spin.setEnabled)
 
-        # Start disabled — enabled when a vector input is available
-        self.setEnabled(False)
+        # Input path starts empty — user can browse or it auto-fills after prediction
 
     # -------------------------------------------------------------------------
     # Internal helpers

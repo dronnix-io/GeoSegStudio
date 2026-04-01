@@ -57,8 +57,8 @@ class RunMonitorWidget(QWidget):
         btn_row.setSpacing(8)
 
         self.start_btn = QPushButton("Start Training")
-        self.start_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         style_primary_btn(self.start_btn)
+        self.start_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)

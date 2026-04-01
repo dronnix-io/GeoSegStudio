@@ -3,7 +3,7 @@ module: tab1_clipping.py
 """
 import multiprocessing
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QSpinBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox,
     QComboBox, QPushButton, QProgressBar
 )
 from qgis.PyQt.QtCore import Qt

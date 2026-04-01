@@ -77,7 +77,9 @@ def style_primary_btn(btn):
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 6px 18px;
+            padding: 0px 10px;
+            min-height: 32px;
+            max-height: 32px;
             font-weight: bold;
             font-size: 11px;
         }}
@@ -102,7 +104,9 @@ def style_danger_btn(btn):
             color: {Palette.ERROR};
             border: 1px solid #FCA5A5;
             border-radius: 4px;
-            padding: 5px 14px;
+            padding: 0px 14px;
+            min-height: 32px;
+            max-height: 32px;
             font-size: 11px;
         }}
         QPushButton:hover {{

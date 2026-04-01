@@ -2,7 +2,7 @@
 module: tab1.py
 """
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QScrollArea, QSizePolicy,
+    QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QSizePolicy,
     QPushButton, QMessageBox
 )
 from qgis.PyQt.QtCore import QCoreApplication
@@ -60,7 +60,13 @@ class Tab1Widget(QWidget):
             "using the current settings."
         )
         self.run_all_btn.clicked.connect(self._on_run_all)
-        content_layout.addWidget(self.run_all_btn)
+
+        bottom_row = QHBoxLayout()
+        bottom_row.setContentsMargins(0, 0, 0, 0)
+        bottom_row.setSpacing(6)
+        bottom_row.addWidget(self.augmentation.apply_btn)
+        bottom_row.addWidget(self.run_all_btn)
+        content_layout.addLayout(bottom_row)
 
         content_layout.addStretch()
         scroll.setWidget(scroll_content)
@@ -284,6 +290,7 @@ class Tab1Widget(QWidget):
 
     def _on_run_all(self):
         config = self._clipping_config()
+        config["prefix"]            = self._prefix()
         config["split_percentages"] = self.splitting.get_split_percentages()
         config["augmentations"]     = self.augmentation.selected_methods()
 

@@ -64,7 +64,6 @@ class AugmentationWidget(QWidget):
 
         self.apply_btn = QPushButton("Apply Augmentation")
         style_primary_btn(self.apply_btn)
-        bottom_layout.addWidget(self.apply_btn)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)

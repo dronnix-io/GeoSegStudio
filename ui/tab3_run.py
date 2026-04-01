@@ -143,8 +143,8 @@ class EvalRunWidget(QWidget):
         btn_row.setSpacing(8)
 
         self.run_btn = QPushButton("Run Evaluation")
-        self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         style_primary_btn(self.run_btn)
+        self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)

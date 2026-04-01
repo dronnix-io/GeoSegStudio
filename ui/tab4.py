@@ -138,7 +138,7 @@ class Tab4Widget(QWidget):
         if out_cfg["load_into_qgis"] and output_paths:
             self._load_layers(output_paths, output_format)
 
-        # Auto-fill post-processing input with the first vector output
+        # Auto-fill input path if a vector output was produced
         vector_path = next(
             (p for p in output_paths if p.endswith((".gpkg", ".shp"))),
             None,
