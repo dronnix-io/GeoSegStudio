@@ -5,19 +5,20 @@ Model section for the Evaluate tab.
 
 Lets the user browse to a trained .pth checkpoint file.
 Once a valid file is loaded, shows read-only metadata extracted from the
-checkpoint (architecture, epoch, val IoU, input bands, tile size).
-The metadata is also used by Tab3Widget for validation when the user
-clicks Run.
+checkpoint (architecture, epoch, val IoU, input bands, tile size) as a
+compact MetaCardGrid row.
 """
 import os
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLineEdit, QLabel, QFileDialog, QFrame,
+    QPushButton, QLineEdit, QLabel, QFileDialog,
 )
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .info_card import MetaCardGrid
+from .styles import style_icon_btn
 
 
 class EvalModelWidget(QWidget):
@@ -48,38 +49,20 @@ class EvalModelWidget(QWidget):
             "The checkpoint must contain model weights and metadata\n"
             "(architecture, in_channels, img_size)."
         )
+        style_icon_btn(self.browse_btn)
         file_row.addWidget(self.browse_btn)
 
         self.form.addRow("Checkpoint", file_row)
 
-        # Hint shown below the path (error or metadata summary)
+        # Hint shown below the path (error or success)
         self.hint_lbl = QLabel("")
         self.hint_lbl.setWordWrap(True)
         self.hint_lbl.setVisible(False)
         self.form.addRow("", self.hint_lbl)
 
-        # --- Separator -------------------------------------------------------
-        self.sep = QFrame()
-        self.sep.setFrameShape(QFrame.HLine)
-        self.sep.setFrameShadow(QFrame.Sunken)
-        self.sep.setVisible(False)
-        self.form.addRow(self.sep)
-
-        # --- Read-only metadata ----------------------------------------------
-        self.arch_lbl      = QLabel("—")
-        self.epoch_lbl     = QLabel("—")
-        self.val_iou_lbl   = QLabel("—")
-        self.in_ch_lbl     = QLabel("—")
-        self.img_size_lbl  = QLabel("—")
-
-        self.form.addRow("Architecture",  self.arch_lbl)
-        self.form.addRow("Epoch",         self.epoch_lbl)
-        self.form.addRow("Val IoU",       self.val_iou_lbl)
-        self.form.addRow("Input Bands",   self.in_ch_lbl)
-        self.form.addRow("Tile Size",     self.img_size_lbl)
-
-        # Hide metadata rows until a checkpoint is loaded
-        self._set_metadata_visible(False)
+        # --- Metadata cards (hidden until checkpoint loaded) ------------------
+        self.meta_cards = MetaCardGrid(cols_per_row=3)
+        self.form.addRow(self.meta_cards)
 
         # --- Assemble section ------------------------------------------------
         section_layout = QVBoxLayout()
@@ -87,10 +70,9 @@ class EvalModelWidget(QWidget):
         section_layout.addWidget(self.content)
         self.section.setContentLayout(section_layout)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.section)
-        self.setLayout(layout)
 
         # --- Connections -----------------------------------------------------
         self.browse_btn.clicked.connect(self._browse_checkpoint)
@@ -98,24 +80,6 @@ class EvalModelWidget(QWidget):
     # -------------------------------------------------------------------------
     # Internal helpers
     # -------------------------------------------------------------------------
-
-    def _set_metadata_visible(self, visible: bool):
-        self.sep.setVisible(visible)
-        for lbl in (self.arch_lbl, self.epoch_lbl, self.val_iou_lbl,
-                    self.in_ch_lbl, self.img_size_lbl):
-            lbl.setVisible(visible)
-
-        # Also hide the corresponding form row labels
-        form = self.form
-        for row in range(form.rowCount()):
-            lbl_item = form.itemAt(row, form.LabelRole)
-            fld_item = form.itemAt(row, form.FieldRole)
-            if fld_item and fld_item.widget() in (
-                self.arch_lbl, self.epoch_lbl, self.val_iou_lbl,
-                self.in_ch_lbl, self.img_size_lbl,
-            ):
-                if lbl_item and lbl_item.widget():
-                    lbl_item.widget().setVisible(visible)
 
     def _browse_checkpoint(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -129,7 +93,7 @@ class EvalModelWidget(QWidget):
     def _load_metadata(self, path: str):
         """Reads checkpoint metadata and updates the display."""
         self._meta = {}
-        self._set_metadata_visible(False)
+        self.meta_cards.clear_cards()
 
         try:
             import torch
@@ -156,9 +120,9 @@ class EvalModelWidget(QWidget):
         img_size = saved.get("img_size")
 
         missing = []
-        if not arch:     missing.append("architecture")
-        if in_ch is None: missing.append("in_channels")
-        if img_size is None: missing.append("img_size")
+        if not arch:          missing.append("architecture")
+        if in_ch is None:     missing.append("in_channels")
+        if img_size is None:  missing.append("img_size")
 
         if missing:
             self._show_hint(
@@ -169,7 +133,6 @@ class EvalModelWidget(QWidget):
             )
             return
 
-        # Cache for use by Tab3Widget when building the evaluation config
         self._meta = {
             "architecture": arch,
             "epoch":        epoch,
@@ -178,17 +141,15 @@ class EvalModelWidget(QWidget):
             "img_size":     img_size,
         }
 
-        # Update display labels
-        self.arch_lbl.setText(arch)
-        self.epoch_lbl.setText(str(epoch) if epoch is not None else "—")
-        self.val_iou_lbl.setText(
-            f"{val_iou:.4f}" if val_iou is not None else "—"
-        )
-        self.in_ch_lbl.setText(str(in_ch))
-        self.img_size_lbl.setText(f"{img_size} × {img_size} px")
+        self.meta_cards.set_cards([
+            ("Architecture",  arch),
+            ("Epoch",         str(epoch) if epoch is not None else "—"),
+            ("Val IoU",       f"{val_iou:.4f}" if val_iou is not None else "—"),
+            ("Input Bands",   str(in_ch)),
+            ("Tile Size",     f"{img_size} × {img_size} px"),
+        ])
 
         self._show_hint("Checkpoint loaded successfully.", error=False)
-        self._set_metadata_visible(True)
 
     def _show_hint(self, message: str, error: bool):
         color = "red" if error else "green"

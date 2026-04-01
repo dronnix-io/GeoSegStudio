@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.QtCore import Qt
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_primary_btn, style_progress_bar
 from ..DL.constants import SUPPORTED_SIZES
 
 
@@ -62,12 +63,14 @@ class ClippingWidget(QWidget):
         bottom_layout.setSpacing(4)
 
         self.apply_btn = QPushButton("Apply Clipping")
+        style_primary_btn(self.apply_btn)
         bottom_layout.addWidget(self.apply_btn)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         bottom_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")

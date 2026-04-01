@@ -10,6 +10,7 @@ from qgis.core import QgsMapLayer, QgsProject
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_icon_btn
 
 
 class InsAndOutsWidget(QWidget):
@@ -19,7 +20,6 @@ class InsAndOutsWidget(QWidget):
         # Main expandable-style section with disabled toggle
         self.section = ExpandableGroupBox("Ins & Outs")
         self.section.toggle_button.setChecked(True)
-        self.section.toggle_button.setArrowType(Qt.DownArrow)
         self.section.toggle_button.setEnabled(False)  # Disables user clicking the arrow
 
         # Section content layout
@@ -38,6 +38,7 @@ class InsAndOutsWidget(QWidget):
         self.output_dir_edit = QLineEdit()
         self.output_dir_button = QPushButton("...")
         self.output_dir_button.setFixedWidth(30)
+        style_icon_btn(self.output_dir_button)
 
         output_layout = QHBoxLayout()
         output_layout.setContentsMargins(0, 0, 0, 0)

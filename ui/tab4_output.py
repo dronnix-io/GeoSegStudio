@@ -20,6 +20,7 @@ from qgis.PyQt.QtWidgets import (
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_icon_btn
 
 
 _FORMATS = [
@@ -55,6 +56,7 @@ class PredictOutputWidget(QWidget):
 
         self.dir_btn = QPushButton("…")
         self.dir_btn.setFixedWidth(30)
+        style_icon_btn(self.dir_btn)
         self.dir_btn.setToolTip("Choose the folder where the output file(s) will be saved.")
         dir_row.addWidget(self.dir_btn)
 

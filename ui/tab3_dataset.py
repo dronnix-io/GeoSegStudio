@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import (
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_icon_btn
 
 
 _SPLITS = [
@@ -47,6 +48,7 @@ class EvalDatasetWidget(QWidget):
 
         self.browse_btn = QPushButton("…")
         self.browse_btn.setFixedWidth(30)
+        style_icon_btn(self.browse_btn)
         self.browse_btn.setToolTip(
             "Select the top-level dataset folder created by the Prepare tab.\n"
             "Use the same folder that was used when training the checkpoint."
@@ -75,6 +77,7 @@ class EvalDatasetWidget(QWidget):
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
         self.refresh_btn.setToolTip("Re-scan the dataset folder for augmented versions.")
+        style_icon_btn(self.refresh_btn)
         version_row.addWidget(self.refresh_btn)
 
         self.form.addRow("Aug. Version", version_row)

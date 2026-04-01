@@ -16,6 +16,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
+from .styles import style_primary_btn, style_danger_btn, style_progress_bar
 
 
 class PredictRunWidget(QWidget):
@@ -38,10 +39,12 @@ class PredictRunWidget(QWidget):
 
         self.run_btn = QPushButton("Run Prediction")
         self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        style_primary_btn(self.run_btn)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.stop_btn.setEnabled(False)
+        style_danger_btn(self.stop_btn)
 
         btn_row.addWidget(self.run_btn)
         btn_row.addWidget(self.stop_btn)
@@ -59,6 +62,7 @@ class PredictRunWidget(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("Tile %v / %m")
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         inner_layout.addWidget(self.progress_bar)
 
         # --- Status label ----------------------------------------------------

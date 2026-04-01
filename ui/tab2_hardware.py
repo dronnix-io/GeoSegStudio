@@ -16,6 +16,7 @@ from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_icon_btn
 
 
 def _detect_devices() -> tuple:
@@ -83,6 +84,7 @@ class HardwareWidget(QWidget):
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
         self.refresh_btn.setToolTip("Re-scan for available compute devices.")
+        style_icon_btn(self.refresh_btn)
         device_row.addWidget(self.refresh_btn)
 
         self.form.addRow("Device", device_row)

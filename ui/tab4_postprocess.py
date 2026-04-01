@@ -30,6 +30,7 @@ from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_primary_btn, style_danger_btn, style_icon_btn, style_progress_bar
 
 
 class PostProcessWidget(QWidget):
@@ -61,6 +62,7 @@ class PostProcessWidget(QWidget):
 
         self.input_browse_btn = QPushButton("…")
         self.input_browse_btn.setFixedWidth(30)
+        style_icon_btn(self.input_browse_btn)
         self.input_browse_btn.setToolTip(
             "Select an existing predicted vector file (GeoPackage or Shapefile)."
         )
@@ -214,10 +216,12 @@ class PostProcessWidget(QWidget):
 
         self.apply_btn = QPushButton("Apply Post-Processing")
         self.apply_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        style_primary_btn(self.apply_btn)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.stop_btn.setEnabled(False)
+        style_danger_btn(self.stop_btn)
 
         btn_row.addWidget(self.apply_btn)
         btn_row.addWidget(self.stop_btn)
@@ -234,6 +238,7 @@ class PostProcessWidget(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("Feature %v / %m")
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         inner_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")

@@ -11,6 +11,7 @@ from .tab1_ins_outs import InsAndOutsWidget
 from .tab1_clipping import ClippingWidget
 from .tab1_splitting import SplittingWidget
 from .tab1_augmentation import AugmentationWidget
+from .styles import style_primary_btn
 
 from ..DL.data_preparation import (
     ValidationError,
@@ -53,6 +54,7 @@ class Tab1Widget(QWidget):
 
         # Run All button
         self.run_all_btn = QPushButton("Run All")
+        style_primary_btn(self.run_all_btn)
         self.run_all_btn.setToolTip(
             "Runs Clipping → Splitting → Augmentation in sequence "
             "using the current settings."

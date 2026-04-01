@@ -12,18 +12,20 @@ Supports two source modes toggled by radio buttons:
   From File   — classic file-browser for rasters not yet loaded in QGIS.
 
 Either way the underlying path is resolved to a file on disk and the same
-read-only info panel (dimensions, band count, CRS, pixel size) is shown.
+read-only info panel (dimensions, band count, CRS, pixel size) is shown as
+a compact MetaCardGrid.
 """
-import os
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLineEdit, QLabel, QFileDialog,
-    QRadioButton, QButtonGroup, QFrame,
+    QRadioButton, QButtonGroup,
 )
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .info_card import MetaCardGrid
+from .styles import style_icon_btn
 
 
 class PredictInputWidget(QWidget):
@@ -70,7 +72,6 @@ class PredictInputWidget(QWidget):
             )
             self._layer_combo_ok = True
         except Exception:
-            # Fallback if QGIS GUI API is unavailable (e.g. headless test)
             self.layer_combo = QLabel("QGIS layer selector unavailable.")
 
         self.form.addRow("QGIS Layer", self.layer_combo)
@@ -88,26 +89,14 @@ class PredictInputWidget(QWidget):
         self.browse_btn = QPushButton("…")
         self.browse_btn.setFixedWidth(30)
         self.browse_btn.setToolTip("Select a GeoTIFF raster file from disk.")
+        style_icon_btn(self.browse_btn)
         file_row.addWidget(self.browse_btn)
 
         self.form.addRow("File", file_row)
 
-        # --- Separator -------------------------------------------------------
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setFrameShadow(QFrame.Sunken)
-        self.form.addRow(sep)
-
-        # --- Read-only raster info -------------------------------------------
-        self.size_lbl       = QLabel("—")
-        self.bands_lbl      = QLabel("—")
-        self.crs_lbl        = QLabel("—")
-        self.pixel_size_lbl = QLabel("—")
-
-        self.form.addRow("Dimensions", self.size_lbl)
-        self.form.addRow("Bands",      self.bands_lbl)
-        self.form.addRow("CRS",        self.crs_lbl)
-        self.form.addRow("Pixel Size", self.pixel_size_lbl)
+        # --- Raster info cards -----------------------------------------------
+        self.info_cards = MetaCardGrid(cols_per_row=2)
+        self.form.addRow(self.info_cards)
 
         self.hint_lbl = QLabel("")
         self.hint_lbl.setWordWrap(True)
@@ -131,7 +120,6 @@ class PredictInputWidget(QWidget):
         if self._layer_combo_ok:
             self.layer_combo.layerChanged.connect(self._on_layer_changed)
 
-        # Initialise visibility
         self._on_mode_changed()
 
     # -------------------------------------------------------------------------
@@ -142,7 +130,6 @@ class PredictInputWidget(QWidget):
         self.file_edit.setEnabled(not use_layer)
         self.browse_btn.setEnabled(not use_layer)
 
-        # Refresh info for the newly active source
         if use_layer:
             self._on_layer_changed()
         else:
@@ -159,9 +146,7 @@ class PredictInputWidget(QWidget):
         if layer is None:
             self._clear_info()
             return
-        path = layer.source()
-        # Strip any GDAL open options appended after the path (e.g. "path|layername=…")
-        path = path.split("|")[0].strip()
+        path = layer.source().split("|")[0].strip()
         if path:
             self._load_raster_info(path)
         else:
@@ -205,16 +190,18 @@ class PredictInputWidget(QWidget):
                     crs_name = name
 
             px     = abs(gt[1]) if gt else None
-            px_str = f"{px:.6f} map units" if px is not None else "?"
+            px_str = f"{px:.6f} mu" if px is not None else "?"
 
             self._band_count = bands
             self._raster_w   = w
             self._raster_h   = h
 
-            self.size_lbl.setText(f"{w} × {h} px")
-            self.bands_lbl.setText(str(bands))
-            self.crs_lbl.setText(crs_name)
-            self.pixel_size_lbl.setText(px_str)
+            self.info_cards.set_cards([
+                ("Dimensions", f"{w} × {h} px"),
+                ("Bands",      str(bands)),
+                ("CRS",        crs_name),
+                ("Pixel Size", px_str),
+            ])
 
         except Exception as exc:
             self.hint_lbl.setText(
@@ -226,9 +213,7 @@ class PredictInputWidget(QWidget):
         self._band_count = None
         self._raster_w   = None
         self._raster_h   = None
-        for lbl in (self.size_lbl, self.bands_lbl,
-                    self.crs_lbl, self.pixel_size_lbl):
-            lbl.setText("—")
+        self.info_cards.clear_cards()
 
     # -------------------------------------------------------------------------
     # Public API

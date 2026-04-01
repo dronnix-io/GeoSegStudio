@@ -8,6 +8,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.QtCore import Qt
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_primary_btn, style_icon_btn, style_progress_bar
 
 
 class SplittingWidget(QWidget):
@@ -34,6 +35,7 @@ class SplittingWidget(QWidget):
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
         self.refresh_btn.setToolTip("Refresh clipping version list")
+        style_icon_btn(self.refresh_btn)
         version_row.addWidget(self.refresh_btn)
 
         self.form.addRow("Clipping Ver.", version_row)
@@ -65,12 +67,14 @@ class SplittingWidget(QWidget):
         bottom_layout.setSpacing(4)
 
         self.apply_btn = QPushButton("Apply Splitting")
+        style_primary_btn(self.apply_btn)
         bottom_layout.addWidget(self.apply_btn)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         bottom_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")

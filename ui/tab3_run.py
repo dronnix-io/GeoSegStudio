@@ -23,6 +23,7 @@ from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_primary_btn, style_danger_btn, style_icon_btn, style_progress_bar
 
 
 def _detect_devices():
@@ -75,6 +76,7 @@ class EvalRunWidget(QWidget):
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
         self.refresh_btn.setToolTip("Re-scan for available compute devices.")
+        style_icon_btn(self.refresh_btn)
         device_row.addWidget(self.refresh_btn)
 
         self.form.addRow("Device", device_row)
@@ -98,6 +100,7 @@ class EvalRunWidget(QWidget):
 
         self.output_dir_btn = QPushButton("…")
         self.output_dir_btn.setFixedWidth(30)
+        style_icon_btn(self.output_dir_btn)
         self.output_dir_btn.setToolTip(
             "Choose a folder to save:\n"
             "  • per-tile CSV (evaluation_<split>_per_tile.csv)\n"
@@ -141,10 +144,12 @@ class EvalRunWidget(QWidget):
 
         self.run_btn = QPushButton("Run Evaluation")
         self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        style_primary_btn(self.run_btn)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.stop_btn.setEnabled(False)
+        style_danger_btn(self.stop_btn)
 
         btn_row.addWidget(self.run_btn)
         btn_row.addWidget(self.stop_btn)
@@ -162,6 +167,7 @@ class EvalRunWidget(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("Tile %v / %m")
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         inner_layout.addWidget(self.progress_bar)
 
         # --- Status label ----------------------------------------------------

@@ -21,6 +21,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 
 from .expandable_groupbox import ExpandableGroupBox
+from .styles import style_primary_btn, style_danger_btn, style_progress_bar
 
 _CSV_HEADERS = ["Epoch", "Train Loss", "Val Loss", "Val IoU", "Val F1"]
 
@@ -57,10 +58,12 @@ class RunMonitorWidget(QWidget):
 
         self.start_btn = QPushButton("Start Training")
         self.start_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        style_primary_btn(self.start_btn)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.stop_btn.setEnabled(False)
+        style_danger_btn(self.stop_btn)
 
         btn_row.addWidget(self.start_btn)
         btn_row.addWidget(self.stop_btn)
@@ -78,6 +81,7 @@ class RunMonitorWidget(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("Epoch %v / %m")
         self.progress_bar.setVisible(False)
+        style_progress_bar(self.progress_bar)
         inner_layout.addWidget(self.progress_bar)
 
         # --- Batch progress bar (within-epoch) -------------------------------
@@ -86,6 +90,7 @@ class RunMonitorWidget(QWidget):
         self.batch_bar.setValue(0)
         self.batch_bar.setFormat("Train — Batch %v / %m")
         self.batch_bar.setVisible(False)
+        style_progress_bar(self.batch_bar)
         inner_layout.addWidget(self.batch_bar)
 
         # --- Status label ----------------------------------------------------

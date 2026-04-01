@@ -19,6 +19,7 @@ from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
+from .styles import style_icon_btn
 
 
 _SAVE_STRATEGIES = [
@@ -52,6 +53,7 @@ class CheckpointsWidget(QWidget):
 
         self.output_dir_btn = QPushButton("…")
         self.output_dir_btn.setFixedWidth(30)
+        style_icon_btn(self.output_dir_btn)
         self.output_dir_btn.setToolTip("Select the folder where the trained model will be saved.")
         dir_row.addWidget(self.output_dir_btn)
 
@@ -119,6 +121,7 @@ class CheckpointsWidget(QWidget):
 
         self.checkpoint_btn = QPushButton("…")
         self.checkpoint_btn.setFixedWidth(30)
+        style_icon_btn(self.checkpoint_btn)
         self.checkpoint_btn.setToolTip("Select a previously saved .pth checkpoint file.")
         file_row.addWidget(self.checkpoint_btn)
 
