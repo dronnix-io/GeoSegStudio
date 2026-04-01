@@ -30,10 +30,10 @@ class Palette:
     PRIMARY_LIGHT  = "#EFF6FF"   # tinted backgrounds
 
     # Section header
-    HEADER_BG      = "#F1F5F9"   # cool grey header background
-    HEADER_BORDER  = "#2563EB"   # left-border accent colour
-    HEADER_TEXT    = "#1E293B"   # near-black title text
-    HEADER_SEP     = "#CBD5E1"   # bottom separator line
+    HEADER_BG      = "#1E293B"   # dark slate header background
+    HEADER_BORDER  = "#38BDF8"   # sky-400 left-border accent (visible on dark)
+    HEADER_TEXT    = "#F1F5F9"   # near-white title text
+    HEADER_SEP     = "#334155"   # subtle separator line on dark bg
 
     # Content area
     CONTENT_BG     = "#FFFFFF"
@@ -69,10 +69,11 @@ class Palette:
 # ---------------------------------------------------------------------------
 
 def style_primary_btn(btn):
-    """Filled blue button — primary action (Run, Apply, Start Training …)."""
+    """Filled slate button — primary action (Run, Apply, Start Training …).
+    Light default, darkens on hover."""
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: #475569;
+            background-color: #64748B;
             color: white;
             border: none;
             border-radius: 4px;
@@ -81,10 +82,10 @@ def style_primary_btn(btn):
             font-size: 11px;
         }}
         QPushButton:hover {{
-            background-color: #334155;
+            background-color: #475569;
         }}
         QPushButton:pressed {{
-            background-color: #1E293B;
+            background-color: #334155;
         }}
         QPushButton:disabled {{
             background-color: {Palette.DISABLED_BG};

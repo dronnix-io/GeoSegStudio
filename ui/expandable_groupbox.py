@@ -4,9 +4,9 @@ module: ui/expandable_groupbox.py
 Collapsible section widget with a styled header bar.
 
 The header has:
-  - A 4 px blue left-border accent
-  - Cool-grey background (Palette.HEADER_BG)
-  - Bold title in near-black (Palette.HEADER_TEXT)
+  - A 4 px sky-blue left-border accent (visible on dark background)
+  - Dark slate background (Palette.HEADER_BG = #1E293B)
+  - Bold title in near-white (Palette.HEADER_TEXT = #F1F5F9)
   - Collapse arrow on the right (▾ / ▸)
   - Clicking anywhere on the header toggles the section
 
@@ -69,12 +69,12 @@ class ExpandableGroupBox(QWidget):
             QToolButton {{
                 border: none;
                 background: transparent;
-                color: {Palette.CARD_LABEL};
+                color: {Palette.HEADER_TEXT};
                 font-size: 14px;
                 padding: 4px 8px;
             }}
             QToolButton:hover {{
-                color: {Palette.HEADER_TEXT};
+                color: white;
             }}
         """)
         self.toggle_button.clicked.connect(self.toggle_content)
