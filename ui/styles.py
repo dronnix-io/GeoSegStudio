@@ -30,10 +30,10 @@ class Palette:
     PRIMARY_LIGHT  = "#EFF6FF"   # tinted backgrounds
 
     # Section header
-    HEADER_BG      = "#1E40AF"   # cobalt blue header — harmonises with QGIS sidebar
-    HEADER_BORDER  = "#93C5FD"   # blue-300 left-border accent (visible on dark blue)
-    HEADER_TEXT    = "#F1F5F9"   # near-white title text
-    HEADER_SEP     = "#1D4ED8"   # subtle separator line on dark blue bg
+    HEADER_BG      = "#DBEAFE"   # blue-100 — very light blue tint, subtle/transparent feel
+    HEADER_BORDER  = "#2563EB"   # blue-600 left-border accent
+    HEADER_TEXT    = "#1E3A5F"   # dark navy text — readable on light blue bg
+    HEADER_SEP     = "#BFDBFE"   # blue-200 separator
 
     # Content area
     CONTENT_BG     = "#FFFFFF"

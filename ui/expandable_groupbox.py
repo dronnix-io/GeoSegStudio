@@ -74,7 +74,7 @@ class ExpandableGroupBox(QWidget):
                 padding: 4px 8px;
             }}
             QToolButton:hover {{
-                color: white;
+                color: {Palette.HEADER_BORDER};
             }}
         """)
         self.toggle_button.clicked.connect(self.toggle_content)
