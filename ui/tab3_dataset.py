@@ -17,6 +17,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from .expandable_groupbox import ExpandableGroupBox
+from .info_card import MetaCardGrid
 from .section_content_widget import SectionContentWidget
 from .styles import style_icon_btn
 
@@ -55,32 +56,31 @@ class EvalDatasetWidget(QWidget):
         )
         dir_row.addWidget(self.browse_btn)
 
+        ver_sep = QFrame()
+        ver_sep.setFrameShape(QFrame.VLine)
+        ver_sep.setFrameShadow(QFrame.Sunken)
+        dir_row.addWidget(ver_sep)
+
+        self.version_combo = QComboBox()
+        self.version_combo.setFixedWidth(110)
+        self.version_combo.setToolTip(
+            "Select the augmented version to evaluate.\n"
+            "Should match the version used during training."
+        )
+        dir_row.addWidget(self.version_combo)
+
+        self.refresh_btn = QPushButton("↻")
+        self.refresh_btn.setFixedWidth(28)
+        self.refresh_btn.setToolTip("Re-scan the dataset folder for augmented versions.")
+        style_icon_btn(self.refresh_btn)
+        dir_row.addWidget(self.refresh_btn)
+
         self.form.addRow("Dataset Dir", dir_row)
 
         self.dir_hint_lbl = QLabel("")
         self.dir_hint_lbl.setWordWrap(True)
         self.dir_hint_lbl.setVisible(False)
         self.form.addRow("", self.dir_hint_lbl)
-
-        # --- Augmented version -----------------------------------------------
-        version_row = QHBoxLayout()
-        version_row.setContentsMargins(0, 0, 0, 0)
-        version_row.setSpacing(4)
-
-        self.version_combo = QComboBox()
-        self.version_combo.setToolTip(
-            "Select the augmented version to evaluate.\n"
-            "Should match the version used during training."
-        )
-        version_row.addWidget(self.version_combo)
-
-        self.refresh_btn = QPushButton("↻")
-        self.refresh_btn.setFixedWidth(28)
-        self.refresh_btn.setToolTip("Re-scan the dataset folder for augmented versions.")
-        style_icon_btn(self.refresh_btn)
-        version_row.addWidget(self.refresh_btn)
-
-        self.form.addRow("Aug. Version", version_row)
 
         # --- Split -----------------------------------------------------------
         self.split_combo = QComboBox()
@@ -92,20 +92,9 @@ class EvalDatasetWidget(QWidget):
         )
         self.form.addRow("Split", self.split_combo)
 
-        # --- Separator -------------------------------------------------------
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setFrameShadow(QFrame.Sunken)
-        self.form.addRow(sep)
-
         # --- Read-only summary -----------------------------------------------
-        self.train_lbl = QLabel("—")
-        self.valid_lbl = QLabel("—")
-        self.test_lbl  = QLabel("—")
-
-        self.form.addRow("Train tiles", self.train_lbl)
-        self.form.addRow("Val tiles",   self.valid_lbl)
-        self.form.addRow("Test tiles",  self.test_lbl)
+        self.summary_cards = MetaCardGrid(cols_per_row=3)
+        self.form.addRow(self.summary_cards)
 
         # --- Assemble section ------------------------------------------------
         section_layout = QVBoxLayout()
@@ -196,15 +185,16 @@ class EvalDatasetWidget(QWidget):
             )
             with open(aug_path) as f:
                 aug = json.load(f)
-            self.train_lbl.setText(str(aug.get("train_count", "?")))
-            self.valid_lbl.setText(str(aug.get("valid_count", "?")))
-            self.test_lbl.setText(str(aug.get("test_count",  "?")))
+            self.summary_cards.set_cards([
+                ("Train tiles", str(aug.get("train_count", "?"))),
+                ("Val tiles",   str(aug.get("valid_count", "?"))),
+                ("Test tiles",  str(aug.get("test_count",  "?"))),
+            ])
         except Exception:
             self._clear_summary()
 
     def _clear_summary(self):
-        for lbl in (self.train_lbl, self.valid_lbl, self.test_lbl):
-            lbl.setText("—")
+        self.summary_cards.clear_cards()
 
     # -------------------------------------------------------------------------
     # Public API

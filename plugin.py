@@ -45,7 +45,7 @@ class DeepLearningPlugin:
 
         if self.dock_widget is None:
             self.dock_widget = DeepLearningDockWidget(self.iface)
-            self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
         self.dock_widget.show()
         self.dock_widget.raise_()
 
@@ -55,19 +55,22 @@ class DeepLearningPlugin:
 
     def _ensure_env(self):
         """
-        Shows the install dialog if the env is not ready yet.
         Patches sys.path when the env already exists so torch is importable.
+        Falls back to showing the install dialog only when the env folder
+        itself is missing (i.e. never been installed).
         """
         try:
-            from .DL.env_manager import is_env_ready, patch_sys_path
+            from .DL.env_manager import patch_sys_path
         except Exception:
             return  # env_manager unavailable — skip silently
 
-        if is_env_ready():
-            patch_sys_path()
+        # If the env site-packages exist, patch sys.path unconditionally.
+        # is_env_ready() spawns a subprocess which can fail inside QGIS even
+        # when torch is perfectly importable, so we skip that check here.
+        if patch_sys_path():
             return
 
-        # Env not ready — show the setup dialog
+        # Env folder is genuinely missing — show the setup dialog
         try:
             from .ui.install_dialog import InstallDialog
         except Exception:

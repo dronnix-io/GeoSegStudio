@@ -72,7 +72,7 @@ def style_primary_btn(btn):
     """Filled blue button — primary action (Run, Apply, Start Training …)."""
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: {Palette.PRIMARY};
+            background-color: #475569;
             color: white;
             border: none;
             border-radius: 4px;
@@ -81,10 +81,10 @@ def style_primary_btn(btn):
             font-size: 11px;
         }}
         QPushButton:hover {{
-            background-color: {Palette.PRIMARY_DARK};
+            background-color: #334155;
         }}
         QPushButton:pressed {{
-            background-color: #1E40AF;
+            background-color: #1E293B;
         }}
         QPushButton:disabled {{
             background-color: {Palette.DISABLED_BG};
