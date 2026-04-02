@@ -7,12 +7,12 @@ from .tab2 import Tab2Widget
 from .tab3 import Tab3Widget
 from .tab4 import Tab4Widget
 
-class DeepLearningDockWidget(QDockWidget):
+class GeoSegStudioDockWidget(QDockWidget):
     def __init__(self, iface, parent=None):
-        super().__init__("Deep Learning Plugin", parent)
+        super().__init__("GeoSeg Studio", parent)
         self.setFont(iface.mainWindow().font())  # Good here!
         self.iface = iface
-        self.setObjectName("DeepLearningDockWidget")
+        self.setObjectName("GeoSegStudioDockWidget")
         self.setMinimumWidth(500)
 
         main_widget = QWidget()

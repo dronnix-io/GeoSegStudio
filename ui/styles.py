@@ -1,7 +1,7 @@
 """
 module: ui/styles.py
 
-Central design system for the Deep Learning Plugin UI.
+Central design system for the GeoSeg Studio UI.
 
 Defines the color palette and provides helper functions that apply
 consistent stylesheet rules to specific widget types.  Import and

@@ -1,6 +1,6 @@
 [general]
-name=DeepLearningPlugin
-description=A QGIS Plugin for DL operations. (Mainly Semantic Segmentation.)
+name=GeoSeg Studio
+description=Full-pipeline deep learning semantic segmentation for geospatial raster data.
 version=1.0.0
 qgisMinimumVersion=3.10
 author=Salar Ghaffarian
@@ -10,8 +10,8 @@ icon=icon.png
 
 
 # Additional Information
-about=A dockable QGIS plugin that allows running deep learning semantic segmentation on the Geo-referenced raster data.
-tags=deep learning;semantic segmentation;PyTorch;AI
+about=GeoSeg Studio is a complete deep learning segmentation environment for QGIS. It covers the full workflow in one plugin: prepare training data (clip, split, augment), train your own segmentation model, evaluate performance, run predictions on new rasters, and post-process vector outputs — all without leaving QGIS.
+tags=deep learning;semantic segmentation;PyTorch;AI;segmentation;training;remote sensing;raster;neural network;U-Net
 homepage=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS
 tracker=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS/issues
 repository=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS.git

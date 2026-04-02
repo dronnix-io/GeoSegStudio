@@ -1,3 +1,3 @@
 def classFactory(iface):
-    from .plugin import DeepLearningPlugin
-    return DeepLearningPlugin(iface)
+    from .plugin import GeoSegStudioPlugin
+    return GeoSegStudioPlugin(iface)

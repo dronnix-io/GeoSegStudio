@@ -82,7 +82,7 @@ class _InstallWorker(QThread):
 class InstallDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Deep Learning Plugin — Setup")
+        self.setWindowTitle("GeoSeg Studio — Setup")
         self.setMinimumWidth(560)
         self.setMinimumHeight(420)
         self._worker: _InstallWorker | None = None
@@ -93,7 +93,7 @@ class InstallDialog(QDialog):
 
         # --- Intro -----------------------------------------------------------
         intro = QLabel(
-            "<b>Welcome to the Deep Learning Plugin.</b><br><br>"
+            "<b>Welcome to GeoSeg Studio.</b><br><br>"
             "PyTorch needs to be installed in an isolated environment "
             "before you can train or run models.<br>"
             "Select the option that matches your hardware, then click "

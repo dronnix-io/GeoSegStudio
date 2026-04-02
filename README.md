@@ -1,10 +1,12 @@
-# **Deep Learning QGIS plugin.**
+# **GeoSeg Studio**
 
-This is an **open-source** python-based plugin for QGIS software to provide the user with code-free implementation of DL-basec Semantic Segmentation operation for Geo-referenced raster files
+**GeoSeg Studio** is an **open-source** QGIS plugin providing a complete deep learning semantic segmentation pipeline for geo-referenced raster data — no coding required.
 
-**Note:** This plugin makes QGIS users able of taking advantage of applying the Deep Learning methods on their raster data either using either system GPU(s) or CPU(s)
+It covers the full workflow in one place: prepare training data, train your own segmentation model, evaluate performance, run predictions on new rasters, and post-process the vector outputs.
 
-The GUI uses *Pytorch* on the backend as its deep learning module for conducting its deep learning operations
+**Note:** GeoSeg Studio runs on both GPU (NVIDIA CUDA) and CPU, making it accessible regardless of hardware.
+
+The plugin uses *PyTorch* on the backend for all deep learning operations.
 
 **Author:** ___Salar Ghaffarian___   
     
