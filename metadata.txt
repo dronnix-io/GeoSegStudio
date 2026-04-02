@@ -12,9 +12,9 @@ icon=icon.png
 # Additional Information
 about=GeoSeg Studio is a complete deep learning segmentation environment for QGIS. It covers the full workflow in one plugin: prepare training data (clip, split, augment), train your own segmentation model, evaluate performance, run predictions on new rasters, and post-process vector outputs — all without leaving QGIS.
 tags=deep learning;semantic segmentation;PyTorch;AI;segmentation;training;remote sensing;raster;neural network;U-Net
-homepage=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS
-tracker=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS/issues
-repository=https://github.com/salarghaffarian/DeepLearningPlugin_QGIS.git
+homepage=https://github.com/salarghaffarian/GeoSegStudio
+tracker=https://github.com/salarghaffarian/GeoSegStudio/issues
+repository=https://github.com/salarghaffarian/GeoSegStudio.git
 
 experimental=False
 deprecated=False

@@ -11,7 +11,7 @@ class GeoSegStudioPlugin:
         self.action = None
 
     def initGui(self):
-        self.action = QAction(QIcon(":/plugins/DeepLearningPlugin/icon.png"), "GeoSeg Studio", self.iface.mainWindow())
+        self.action = QAction(QIcon(":/plugins/GeoSegStudio/icon.png"), "GeoSeg Studio", self.iface.mainWindow())
         self.action.triggered.connect(self.show_dock)
         self.iface.addPluginToMenu("GeoSeg Studio", self.action)
         self.iface.addToolBarIcon(self.action)
