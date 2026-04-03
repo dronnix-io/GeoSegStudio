@@ -94,7 +94,12 @@ On the first launch, GeoSeg Studio will open a setup dialog asking you to choose
 
 The plugin installs PyTorch automatically into an isolated environment (`env/` inside the plugin folder). This does not affect your system Python or QGIS installation.
 
-> To check your CUDA version: open a terminal and run `nvidia-smi`. The CUDA version is shown in the top-right corner.
+> **Not sure which option to pick?**
+> - If you have no NVIDIA GPU, or you are unsure — select **CPU only**. The plugin will work fully, just without GPU acceleration.
+> - If you have an NVIDIA GPU, open a terminal and run `nvidia-smi`. Your CUDA version is shown in the top-right corner of the output. Match it to the options above.
+> - Picking a CUDA version that doesn't match your drivers is safe — PyTorch will still install, but the GPU may not be used. You can always reinstall by deleting the `env/` folder inside the plugin directory and relaunching QGIS.
+
+> **AMD and Intel GPUs** are not supported for GPU acceleration. Select **CPU only**.
 
 ---
 
