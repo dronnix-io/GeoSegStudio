@@ -21,5 +21,3 @@ deprecated=False
 hasProcessingProvider=no
 license=GPLv2
 changelog=1.0.0 - Initial release
-hasProcessingProvider=no
-changelog=1.0.0 - Initial release
