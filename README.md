@@ -10,13 +10,18 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 
 ## Screenshots
 
-| Prepare | Train |
-|---------|-------|
-| ![Prepare Tab](docs/images/tab_prepare.png) | ![Train Tab](docs/images/tab_train.png) |
-
-| Evaluate | Predict |
-|----------|---------|
-| ![Evaluate Tab](docs/images/tab_evaluate.png) | ![Predict Tab](docs/images/tab_predict.png) |
+<p align="center">
+  <img src="docs/images/tab_prepare.png" width="22%" title="Prepare" />
+  &nbsp;
+  <img src="docs/images/tab_train.png" width="22%" title="Train" />
+  &nbsp;
+  <img src="docs/images/tab_evaluate.png" width="22%" title="Evaluate" />
+  &nbsp;
+  <img src="docs/images/tab_predict.png" width="22%" title="Predict" />
+</p>
+<p align="center">
+  <sub>Prepare &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Train &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluate &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Predict</sub>
+</p>
 
 ---
 
