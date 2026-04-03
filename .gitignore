@@ -2,6 +2,8 @@
 .vscode
 data
 env/
+dist/
 __pycache__/
 ui/__pycache__/
 DL/__pycache__/
+DL/data_preparation/__pycache__/

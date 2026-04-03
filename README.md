@@ -62,6 +62,14 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 2. In QGIS go to **Plugins → Manage and Install Plugins → Install from ZIP**
 3. Select the downloaded ZIP and click **Install Plugin**
 
+**Option C: Build from source**
+```bash
+git clone https://github.com/dronnix-io/GeoSegStudio.git
+cd GeoSegStudio
+python package.py
+```
+This produces `dist/GeoSegStudio.zip`. Install it via Option B above.
+
 ### Step 2 — Install PyTorch (first run only)
 
 On the first launch, GeoSeg Studio will open a setup dialog asking you to choose your hardware:
