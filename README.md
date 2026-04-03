@@ -57,7 +57,7 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 3. Search for `GeoSeg Studio`
 4. Click **Install Plugin**
 
-**Option B: Manual installation**
+**Option B: Install from ZIP**
 1. Download the latest `GeoSegStudio.zip` from the [Releases](https://github.com/dronnix-io/GeoSegStudio/releases) page
 2. In QGIS go to **Plugins → Manage and Install Plugins → Install from ZIP**
 3. Select the downloaded ZIP and click **Install Plugin**

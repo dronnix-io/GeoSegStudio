@@ -1,0 +1,46 @@
+name: Release
+
+# Triggered when you push a version tag e.g. git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Build the ZIP using the existing package.py script
+      - name: Build plugin ZIP
+        run: python package.py
+
+      # 4. Publish a GitHub Release and attach the ZIP
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "GeoSeg Studio ${{ github.ref_name }}"
+          body: |
+            ## GeoSeg Studio ${{ github.ref_name }}
+
+            ### Installation
+            1. Download `GeoSegStudio.zip` below
+            2. In QGIS go to **Plugins → Manage and Install Plugins → Install from ZIP**
+            3. Select the downloaded ZIP and click **Install Plugin**
+
+            ### First run
+            On the first launch, GeoSeg Studio will prompt you to install PyTorch.
+            Select the option that matches your hardware (CUDA or CPU) and click Install.
+          files: dist/GeoSegStudio.zip
+          draft: false
+          prerelease: false
