@@ -10,7 +10,7 @@ The plugin uses *PyTorch* on the backend for all deep learning operations.
 
 **Author:** ___Salar Ghaffarian___   
     
-**Email:** salarghaffarian1363@gmail.com
+**Email:** salar@dronnix.com
 
 
 ## The main ***workflow*** contains the following steps:
