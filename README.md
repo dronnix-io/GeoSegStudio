@@ -70,7 +70,15 @@ python package.py
 ```
 This produces `dist/GeoSegStudio.zip`. Install it via Option B above.
 
-### Step 2 — Install PyTorch (first run only)
+### Step 2 — Launch the plugin
+
+After installation, open the plugin in QGIS via:
+
+**Plugins → GeoSeg Studio → GeoSeg Studio**
+
+Alternatively, click the **GeoSeg Studio icon** in the QGIS toolbar. The plugin opens as a dock panel on the right side of the QGIS window.
+
+### Step 3 — Install PyTorch (first run only)
 
 On the first launch, GeoSeg Studio will open a setup dialog asking you to choose your hardware:
 
