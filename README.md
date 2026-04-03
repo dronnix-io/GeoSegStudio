@@ -8,6 +8,18 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 
 ---
 
+## Screenshots
+
+| Prepare | Train |
+|---------|-------|
+| ![Prepare Tab](docs/images/tab_prepare.png) | ![Train Tab](docs/images/tab_train.png) |
+
+| Evaluate | Predict |
+|----------|---------|
+| ![Evaluate Tab](docs/images/tab_evaluate.png) | ![Predict Tab](docs/images/tab_predict.png) |
+
+---
+
 ## Key Features
 
 - Full pipeline in a single plugin: data preparation → training → evaluation → prediction
