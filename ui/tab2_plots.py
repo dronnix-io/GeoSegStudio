@@ -137,7 +137,7 @@ class TrainingPlotWidget(QWidget):
         """Render placeholder axes with labels but no data."""
         for ax, title in [
             (self._ax_loss,    "Loss"),
-            (self._ax_metrics, "Validation Metrics"),
+            (self._ax_metrics, "Val. Accuracy"),
         ]:
             ax.clear()
             ax.set_title(title, fontsize=9)
@@ -174,7 +174,7 @@ class TrainingPlotWidget(QWidget):
                 color="#4CAF50", linewidth=1.5, label="Val IoU")
         ax.plot(ep, self._val_f1s,
                 color="#E91E63", linewidth=1.5, label="Val F1")
-        ax.set_title("Validation Metrics", fontsize=9)
+        ax.set_title("Val. Accuracy", fontsize=9)
         ax.set_xlabel("Epoch", fontsize=8)
         ax.tick_params(labelsize=7)
         ax.legend(fontsize=7, loc="lower right")
