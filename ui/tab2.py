@@ -8,26 +8,26 @@ from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QScrollArea, QSizePolicy, QMessageBox,
 )
 
-from .tab2_dataset         import DatasetWidget
-from .tab2_model           import ModelWidget
+from .tab2_dataset import DatasetWidget
+from .tab2_model import ModelWidget
 from .tab2_training_config import TrainingConfigWidget
-from .tab2_checkpoints     import CheckpointsWidget
-from .tab2_hardware        import HardwareWidget
-from .tab2_run_monitor     import RunMonitorWidget
-from .tab2_plots           import TrainingPlotWidget
+from .tab2_checkpoints import CheckpointsWidget
+from .tab2_hardware import HardwareWidget
+from .tab2_run_monitor import RunMonitorWidget
+from .tab2_plots import TrainingPlotWidget
 
 
 class Tab2Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.dataset         = DatasetWidget()
-        self.model           = ModelWidget()
+        self.dataset = DatasetWidget()
+        self.model = ModelWidget()
         self.training_config = TrainingConfigWidget()
-        self.checkpoints     = CheckpointsWidget()
-        self.hardware        = HardwareWidget()
-        self.run_monitor     = RunMonitorWidget()
-        self.plots           = TrainingPlotWidget()
+        self.checkpoints = CheckpointsWidget()
+        self.hardware = HardwareWidget()
+        self.run_monitor = RunMonitorWidget()
+        self.plots = TrainingPlotWidget()
 
         self._worker = None  # TrainingWorker instance while training
 
@@ -75,11 +75,13 @@ class Tab2Widget(QWidget):
         self._worker.phase_update.connect(self.run_monitor.update_phase)
         self._worker.epoch_done.connect(self.run_monitor.add_epoch_row)
         self._worker.epoch_done.connect(self.plots.add_epoch)
-        self._worker.batch_progress.connect(self.run_monitor.update_batch_progress)
+        self._worker.batch_progress.connect(
+            self.run_monitor.update_batch_progress)
         self._worker.training_finished.connect(self._on_training_finished)
 
         self.run_monitor.reset_monitor()
-        self.run_monitor.set_output_paths(config["output_dir"], config["model_name"])
+        self.run_monitor.set_output_paths(
+            config["output_dir"], config["model_name"])
         self.plots.reset()
         self.run_monitor.set_running(True, config["epochs"])
         self._worker.start()
@@ -107,10 +109,10 @@ class Tab2Widget(QWidget):
         (None, message)  when validation fails
         """
         # Dataset
-        dataset_dir  = self.dataset.get_dataset_dir()
-        aug_version  = self.dataset.get_selected_version()
-        in_channels  = self.dataset.get_band_count_int()
-        img_size     = self.dataset.get_tile_size_int()
+        dataset_dir = self.dataset.get_dataset_dir()
+        aug_version = self.dataset.get_selected_version()
+        in_channels = self.dataset.get_band_count_int()
+        img_size = self.dataset.get_tile_size_int()
 
         if not dataset_dir:
             return None, "Please select a dataset folder."
@@ -140,29 +142,30 @@ class Tab2Widget(QWidget):
             "dataset_dir": dataset_dir,
             "aug_version": aug_version,
             # Model
-            "architecture":  model_cfg["architecture"],
-            "in_channels":   in_channels,
-            "img_size":      img_size,
+            "architecture": model_cfg["architecture"],
+            "in_channels": in_channels,
+            "img_size": img_size,
             "base_channels": model_cfg["base_channels"],
             # Training
-            "loss":       train_cfg["loss"],
-            "optimizer":  train_cfg["optimizer"],
-            "lr":         train_cfg["lr"],
+            "loss": train_cfg["loss"],
+            "optimizer": train_cfg["optimizer"],
+            "lr": train_cfg["lr"],
             "batch_size": train_cfg["batch_size"],
-            "epochs":     train_cfg["epochs"],
-            "scheduler":  train_cfg["scheduler"],
+            "epochs": train_cfg["epochs"],
+            "scheduler": train_cfg["scheduler"],
             # Checkpoints
-            "output_dir":    ckpt_cfg["output_dir"],
-            "model_name":    ckpt_cfg["model_name"],
+            "output_dir": ckpt_cfg["output_dir"],
+            "model_name": ckpt_cfg["model_name"],
             "save_strategy": ckpt_cfg["save_strategy"],
-            "every_n":       ckpt_cfg.get("every_n", 10),
-            "resume_path":   ckpt_cfg.get("resume_path"),
+            "every_n": ckpt_cfg.get("every_n", 10),
+            "resume_path": ckpt_cfg.get("resume_path"),
             # Hardware
-            "device":      hw_cfg["device"],
+            "device": hw_cfg["device"],
             "num_workers": hw_cfg["num_workers"],
         }
 
-        # Checkpoint compatibility — must be the last check so config is fully built
+        # Checkpoint compatibility — must be the last check so config is fully
+        # built
         if config.get("resume_path"):
             compat_error = self._check_checkpoint_compat(config)
             if compat_error:
@@ -185,7 +188,10 @@ class Tab2Widget(QWidget):
 
         try:
             import torch
-            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
+            data = torch.load(
+                path,
+                map_location="cpu",
+                weights_only=False)  # nosec B614
         except Exception as exc:
             return (
                 f"Could not read the checkpoint file:\n  {exc}\n\n"
@@ -194,7 +200,8 @@ class Tab2Widget(QWidget):
 
         saved_cfg = data.get("config", {})
 
-        # Collect all mismatches before reporting so the user sees everything at once
+        # Collect all mismatches before reporting so the user sees everything
+        # at once
         issues = []
 
         # --- Architecture ----------------------------------------------------

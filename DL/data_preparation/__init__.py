@@ -1,5 +1,5 @@
 from .validator import ValidationError, validate_for_clipping, validate_for_splitting, validate_for_augmentation
-from .pipeline  import (
+from .pipeline import (
     run_clipping,
     run_splitting,
     run_augmentation,

@@ -58,14 +58,14 @@ def run_clipping(config: dict,
 
     raster_layer = config["raster_layer"]
     vector_layer = config["vector_layer"]
-    clip         = config["clip_params"]
+    clip = config["clip_params"]
 
     window_size = clip["window_size"]
-    stride      = clip["stride"]
-    pixel_size  = raster_layer.rasterUnitsPerPixelX()
-    burn_value  = clip["burn_value"]
-    cpu_count   = clip.get("cpu_count", 1)
-    crs_wkt     = raster_layer.crs().toWkt()
+    stride = clip["stride"]
+    pixel_size = raster_layer.rasterUnitsPerPixelX()
+    burn_value = clip["burn_value"]
+    cpu_count = clip.get("cpu_count", 1)
+    crs_wkt = raster_layer.crs().toWkt()
 
     # Derive dataset folder name from raster layer name
     prefix = "".join(
@@ -75,56 +75,58 @@ def run_clipping(config: dict,
 
     # Source file paths (passed to worker threads instead of QGIS objects)
     raster_path = raster_layer.source()
-    vector_path, vector_layer_name = _parse_vector_source(vector_layer.source())
+    vector_path, vector_layer_name = _parse_vector_source(
+        vector_layer.source())
 
     # --- Versioned output directories ----------------------------------------
     dataset_dir = os.path.join(config["output_dir"], f"{prefix}_dataset")
-    version     = _next_version(dataset_dir, "clipping")
+    version = _next_version(dataset_dir, "clipping")
     version_dir = os.path.join(dataset_dir, "clipping", f"v{version}")
-    images_dir  = os.path.join(version_dir, "images")
-    masks_dir   = os.path.join(version_dir, "masks")
+    images_dir = os.path.join(version_dir, "images")
+    masks_dir = os.path.join(version_dir, "masks")
 
     os.makedirs(images_dir, exist_ok=True)
-    os.makedirs(masks_dir,  exist_ok=True)
+    os.makedirs(masks_dir, exist_ok=True)
 
     # --- Compute tile grid ---------------------------------------------------
-    tile_geo   = window_size * pixel_size
-    stride_geo = stride      * pixel_size
-    extent     = raster_layer.extent()
-    origins    = _tile_origins(extent, tile_geo, stride_geo)
-    total      = len(origins)
+    tile_geo = window_size * pixel_size
+    stride_geo = stride * pixel_size
+    extent = raster_layer.extent()
+    origins = _tile_origins(extent, tile_geo, stride_geo)
+    total = len(origins)
 
     # Build per-tile argument dicts
     tile_args = []
     for idx, (x_origin, y_origin) in enumerate(origins):
         tile_name = f"{prefix}_{idx + 1:05d}"
         tile_args.append({
-            "raster_path":       raster_path,
-            "vector_path":       vector_path,
+            "raster_path": raster_path,
+            "vector_path": vector_path,
             "vector_layer_name": vector_layer_name,
-            "x_min":             x_origin,
-            "x_max":             x_origin + tile_geo,
-            "y_max":             y_origin,
-            "y_min":             y_origin - tile_geo,
-            "window_size":       window_size,
-            "burn_value":        burn_value,
-            "crs_wkt":           crs_wkt,
-            "image_path":        os.path.join(images_dir, f"{tile_name}.tif"),
-            "mask_path":         os.path.join(masks_dir,  f"{tile_name}.tif"),
-            "tile_name":         tile_name,
+            "x_min": x_origin,
+            "x_max": x_origin + tile_geo,
+            "y_max": y_origin,
+            "y_min": y_origin - tile_geo,
+            "window_size": window_size,
+            "burn_value": burn_value,
+            "crs_wkt": crs_wkt,
+            "image_path": os.path.join(images_dir, f"{tile_name}.tif"),
+            "mask_path": os.path.join(masks_dir, f"{tile_name}.tif"),
+            "tile_name": tile_name,
         })
 
     # --- Parallel execution --------------------------------------------------
-    tile_count    = 0
+    tile_count = 0
     skipped_count = 0
-    completed     = 0
+    completed = 0
 
     with ThreadPoolExecutor(max_workers=cpu_count) as executor:
         futures = {}
         for args in tile_args:
             if cancelled_callback and cancelled_callback():
                 break
-            futures[executor.submit(_clip_tile_worker, args)] = args["tile_name"]
+            futures[executor.submit(_clip_tile_worker, args)
+                    ] = args["tile_name"]
 
         for future in as_completed(futures):
             result = future.result()      # raises if worker raised
@@ -141,33 +143,37 @@ def run_clipping(config: dict,
 
     # --- Persist metadata ----------------------------------------------------
     info = {
-        "version":           version,
-        "created":           datetime.now().isoformat(),
-        "raster_layer":      raster_layer.name(),
-        "vector_layer":      vector_layer.name(),
-        "crs":               raster_layer.crs().authid(),
-        "window_size":       window_size,
-        "stride":            stride,
+        "version": version,
+        "created": datetime.now().isoformat(),
+        "raster_layer": raster_layer.name(),
+        "vector_layer": vector_layer.name(),
+        "crs": raster_layer.crs().authid(),
+        "window_size": window_size,
+        "stride": stride,
         "native_pixel_size": pixel_size,
-        "burn_value":        burn_value,
-        "output_format":     clip["output_format"],
-        "band_count":        raster_layer.bandCount(),
-        "total_tiles":       tile_count,
-        "skipped_tiles":     skipped_count,
+        "burn_value": burn_value,
+        "output_format": clip["output_format"],
+        "band_count": raster_layer.bandCount(),
+        "total_tiles": tile_count,
+        "skipped_tiles": skipped_count,
     }
     _write_json(os.path.join(version_dir, "clipping_info.json"), info)
 
     return {
-        "version":       version,
-        "tile_count":    tile_count,
+        "version": version,
+        "tile_count": tile_count,
         "skipped_count": skipped_count,
-        "version_dir":   version_dir,
+        "version_dir": version_dir,
     }
 
 
 def get_available_versions(dataset_dir: str) -> list:
     """Returns sorted list of existing clipping version dicts."""
-    return _scan_versions(os.path.join(dataset_dir, "clipping"), "clipping_info.json")
+    return _scan_versions(
+        os.path.join(
+            dataset_dir,
+            "clipping"),
+        "clipping_info.json")
 
 
 # ---------------------------------------------------------------------------
@@ -183,15 +189,15 @@ def _clip_tile_worker(args: dict) -> dict:
     from osgeo import gdal, ogr
     gdal.UseExceptions()
 
-    x_min       = args["x_min"]
-    x_max       = args["x_max"]
-    y_min       = args["y_min"]
-    y_max       = args["y_max"]
+    x_min = args["x_min"]
+    x_max = args["x_max"]
+    y_min = args["y_min"]
+    y_max = args["y_max"]
     window_size = args["window_size"]
-    burn_value  = args["burn_value"]
-    image_path  = args["image_path"]
-    mask_path   = args["mask_path"]
-    pixel_size  = (x_max - x_min) / window_size
+    burn_value = args["burn_value"]
+    image_path = args["image_path"]
+    mask_path = args["mask_path"]
+    pixel_size = (x_max - x_min) / window_size
 
     # --- Clip raster tile ----------------------------------------------------
     gdal.Translate(
@@ -205,7 +211,7 @@ def _clip_tile_worker(args: dict) -> dict:
     )
 
     # --- Create blank mask raster --------------------------------------------
-    driver  = gdal.GetDriverByName("GTiff")
+    driver = gdal.GetDriverByName("GTiff")
     mask_ds = driver.Create(
         mask_path, window_size, window_size, 1, gdal.GDT_Byte,
         options=["COMPRESS=LZW", "TILED=YES"],
@@ -216,8 +222,8 @@ def _clip_tile_worker(args: dict) -> dict:
     band.Fill(0)                            # background = 0
 
     # --- Open vector and apply spatial filter --------------------------------
-    vector_ds  = ogr.Open(args["vector_path"])
-    ogr_layer  = (
+    vector_ds = ogr.Open(args["vector_path"])
+    ogr_layer = (
         vector_ds.GetLayerByName(args["vector_layer_name"])
         if args["vector_layer_name"]
         else vector_ds.GetLayer(0)
@@ -231,17 +237,17 @@ def _clip_tile_worker(args: dict) -> dict:
     )
 
     # Check if any foreground pixels were burned
-    arr          = band.ReadAsArray()
+    arr = band.ReadAsArray()
     has_positive = bool(np.any(arr > 0))
 
     mask_ds.FlushCache()
-    mask_ds   = None
+    mask_ds = None
     vector_ds = None
 
     return {
         "has_positive": has_positive,
-        "image_path":   image_path,
-        "mask_path":    mask_path,
+        "image_path": image_path,
+        "mask_path": mask_path,
     }
 
 

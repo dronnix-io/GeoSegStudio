@@ -17,21 +17,21 @@ from .section_content_widget import SectionContentWidget
 
 # (Display label, data key)
 _LOSS_OPTIONS = [
-    ("BCE",        "bce"),
-    ("Dice",       "dice"),
+    ("BCE", "bce"),
+    ("Dice", "dice"),
     ("BCE + Dice", "bce_dice"),
 ]
 
 _OPTIMIZER_OPTIONS = [
-    ("Adam",  "adam"),
+    ("Adam", "adam"),
     ("AdamW", "adamw"),
-    ("SGD",   "sgd"),
+    ("SGD", "sgd"),
 ]
 
 _SCHEDULER_OPTIONS = [
-    ("None",              None),
-    ("StepLR",            "StepLR"),
-    ("Cosine Annealing",  "CosineAnnealing"),
+    ("None", None),
+    ("StepLR", "StepLR"),
+    ("Cosine Annealing", "CosineAnnealing"),
     ("Reduce on Plateau", "ReduceLROnPlateau"),
 ]
 
@@ -42,7 +42,7 @@ class TrainingConfigWidget(QWidget):
 
         self.section = ExpandableGroupBox("Training Configuration")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Loss function ---------------------------------------------------
         self.loss_combo = QComboBox()
@@ -52,8 +52,7 @@ class TrainingConfigWidget(QWidget):
         self.loss_combo.setToolTip(
             "BCE: Binary Cross-Entropy — penalises each pixel independently.\n"
             "Dice: Dice loss — optimises overlap between prediction and mask.\n"
-            "BCE + Dice: combines both; recommended for most cases."
-        )
+            "BCE + Dice: combines both; recommended for most cases.")
         self.form.addRow("Loss Function", self.loss_combo)
 
         # --- Optimizer -------------------------------------------------------
@@ -63,8 +62,7 @@ class TrainingConfigWidget(QWidget):
         self.optimizer_combo.setToolTip(
             "Adam:  adaptive learning rate — good general-purpose default.\n"
             "AdamW: Adam with weight decay — often better on transformers.\n"
-            "SGD:   stochastic gradient descent — robust but slower to converge."
-        )
+            "SGD:   stochastic gradient descent — robust but slower to converge.")
         self.form.addRow("Optimizer", self.optimizer_combo)
 
         # --- Learning rate ---------------------------------------------------
@@ -110,8 +108,7 @@ class TrainingConfigWidget(QWidget):
             "None:              learning rate stays fixed throughout.\n"
             "StepLR:            reduces LR by half every 10 epochs.\n"
             "Cosine Annealing:  smoothly reduces LR following a cosine curve.\n"
-            "Reduce on Plateau: reduces LR when validation loss stops improving."
-        )
+            "Reduce on Plateau: reduces LR when validation loss stops improving.")
         self.form.addRow("LR Scheduler", self.scheduler_combo)
 
         # --- Assemble section ------------------------------------------------
@@ -132,10 +129,10 @@ class TrainingConfigWidget(QWidget):
     def get_training_config(self) -> dict:
         """Returns the training configuration as a dict."""
         return {
-            "loss":       self.loss_combo.currentData(),
-            "optimizer":  self.optimizer_combo.currentData(),
-            "lr":         self.lr_spin.value(),
+            "loss": self.loss_combo.currentData(),
+            "optimizer": self.optimizer_combo.currentData(),
+            "lr": self.lr_spin.value(),
             "batch_size": self.batch_spin.value(),
-            "epochs":     self.epochs_spin.value(),
-            "scheduler":  self.scheduler_combo.currentData(),
+            "epochs": self.epochs_spin.value(),
+            "scheduler": self.scheduler_combo.currentData(),
         }

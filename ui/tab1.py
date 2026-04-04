@@ -30,9 +30,9 @@ class Tab1Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.ins_outs    = InsAndOutsWidget()
-        self.clipping    = ClippingWidget()
-        self.splitting   = SplittingWidget()
+        self.ins_outs = InsAndOutsWidget()
+        self.clipping = ClippingWidget()
+        self.splitting = SplittingWidget()
         self.augmentation = AugmentationWidget()
 
         main_layout = QVBoxLayout(self)
@@ -75,11 +75,14 @@ class Tab1Widget(QWidget):
         # Wire individual Apply buttons
         self.clipping.apply_btn.clicked.connect(self._on_apply_clipping)
         self.splitting.apply_btn.clicked.connect(self._on_apply_splitting)
-        self.augmentation.apply_btn.clicked.connect(self._on_apply_augmentation)
+        self.augmentation.apply_btn.clicked.connect(
+            self._on_apply_augmentation)
 
         # Wire refresh buttons on version selectors
-        self.splitting.refresh_btn.clicked.connect(self._refresh_clipping_versions)
-        self.augmentation.refresh_btn.clicked.connect(self._refresh_splitting_versions)
+        self.splitting.refresh_btn.clicked.connect(
+            self._refresh_clipping_versions)
+        self.augmentation.refresh_btn.clicked.connect(
+            self._refresh_splitting_versions)
 
     # -------------------------------------------------------------------------
     # Config builders
@@ -88,8 +91,8 @@ class Tab1Widget(QWidget):
     def _clipping_config(self) -> dict:
         raster_id, vector_id, output_dir = self.ins_outs.get_selected_inputs()
         return {
-            "raster_id":  raster_id,
-            "vector_id":  vector_id,
+            "raster_id": raster_id,
+            "vector_id": vector_id,
             "output_dir": output_dir,
             "clip_params": self.clipping.get_clipping_params(),
         }
@@ -97,21 +100,21 @@ class Tab1Widget(QWidget):
     def _splitting_config(self) -> dict:
         _, _, output_dir = self.ins_outs.get_selected_inputs()
         return {
-            "output_dir":        output_dir,
-            "prefix":            self._prefix(),
+            "output_dir": output_dir,
+            "prefix": self._prefix(),
             "split_percentages": self.splitting.get_split_percentages(),
-            "clipping_version":  self.splitting.get_selected_clipping_version(),
-            "cpu_count":         self.clipping.get_clipping_params()["cpu_count"],
+            "clipping_version": self.splitting.get_selected_clipping_version(),
+            "cpu_count": self.clipping.get_clipping_params()["cpu_count"],
         }
 
     def _augmentation_config(self) -> dict:
         _, _, output_dir = self.ins_outs.get_selected_inputs()
         return {
-            "output_dir":        output_dir,
-            "prefix":            self._prefix(),
-            "augmentations":     self.augmentation.selected_methods(),
+            "output_dir": output_dir,
+            "prefix": self._prefix(),
+            "augmentations": self.augmentation.selected_methods(),
             "splitting_version": self.augmentation.get_selected_splitting_version(),
-            "cpu_count":         self.clipping.get_clipping_params()["cpu_count"],
+            "cpu_count": self.clipping.get_clipping_params()["cpu_count"],
         }
 
     def _prefix(self) -> str:
@@ -120,7 +123,7 @@ class Tab1Widget(QWidget):
         from qgis.core import QgsProject
         raster_id, _, _ = self.ins_outs.get_selected_inputs()
         layer = QgsProject.instance().mapLayer(raster_id) if raster_id else None
-        name  = layer.name() if layer else ""
+        name = layer.name() if layer else ""
         sanitised = "".join(
             c if c.isalnum() or c in "_-" else "_"
             for c in name
@@ -139,8 +142,8 @@ class Tab1Widget(QWidget):
         """Re-scans disk and repopulates the Splitting version selector."""
         try:
             dataset_dir = self._dataset_dir()
-            versions    = get_clipping_versions(dataset_dir)
-            labelled    = [
+            versions = get_clipping_versions(dataset_dir)
+            labelled = [
                 {"version": v["version"], "info": v["info"],
                  "label": version_label(v)}
                 for v in versions
@@ -153,8 +156,8 @@ class Tab1Widget(QWidget):
         """Re-scans disk and repopulates the Augmentation version selector."""
         try:
             dataset_dir = self._dataset_dir()
-            versions    = get_splitting_versions(dataset_dir)
-            labelled    = [
+            versions = get_splitting_versions(dataset_dir)
+            labelled = [
                 {"version": v["version"], "info": v["info"],
                  "label": version_label(v)}
                 for v in versions
@@ -176,7 +179,7 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result   = run_clipping(config, progress_callback=on_progress)
+            result = run_clipping(config, progress_callback=on_progress)
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -217,7 +220,7 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result   = run_splitting(config, progress_callback=on_progress)
+            result = run_splitting(config, progress_callback=on_progress)
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -258,7 +261,7 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result   = run_augmentation(config, progress_callback=on_progress)
+            result = run_augmentation(config, progress_callback=on_progress)
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -273,7 +276,8 @@ class Tab1Widget(QWidget):
 
         except ValidationError as e:
             self.augmentation.set_running(False)
-            QMessageBox.critical(self, "Augmentation — Validation Error", str(e))
+            QMessageBox.critical(
+                self, "Augmentation — Validation Error", str(e))
             self.augmentation.set_status("Validation failed.", error=True)
 
         except Exception as e:
@@ -290,9 +294,9 @@ class Tab1Widget(QWidget):
 
     def _on_run_all(self):
         config = self._clipping_config()
-        config["prefix"]            = self._prefix()
+        config["prefix"] = self._prefix()
         config["split_percentages"] = self.splitting.get_split_percentages()
-        config["augmentations"]     = self.augmentation.selected_methods()
+        config["augmentations"] = self.augmentation.selected_methods()
 
         self.clipping.set_running(True)
         self.splitting.set_running(True)

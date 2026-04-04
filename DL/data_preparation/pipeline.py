@@ -24,10 +24,10 @@ from .validator import (
     validate_for_splitting,
     validate_for_augmentation,
 )
-from .clipper   import run_clipping   as _clip
-from .clipper   import get_available_versions as _clip_versions
-from .splitter  import run_splitting  as _split
-from .splitter  import get_available_versions as _split_versions
+from .clipper import run_clipping as _clip
+from .clipper import get_available_versions as _clip_versions
+from .splitter import run_splitting as _split
+from .splitter import get_available_versions as _split_versions
 from .augmenter import run_augmentation as _augment
 from .augmenter import get_available_versions as _aug_versions
 
@@ -115,8 +115,8 @@ def run_all(config: dict,
     )
 
     return {
-        "clipping":     clip_result,
-        "splitting":    split_result,
+        "clipping": clip_result,
+        "splitting": split_result,
         "augmentation": aug_result,
     }
 
@@ -167,13 +167,13 @@ def version_label(v_dict: dict) -> str:
         )
 
     if "train_pct" in info:            # splitting version
-        return (
-            f"v{vnum}  —  "
-            f"train {info.get('train_pct', '?')}% / "
-            f"valid {info.get('valid_pct', '?')}% / "
-            f"test {info.get('test_pct', '?')}%  "
-            f"({info.get('train_count', 0) + info.get('valid_count', 0) + info.get('test_count', 0)} tiles)"
-        )
+        return (f"v{vnum}  —  " f"train {info.get('train_pct',
+                                                  '?')}% / " f"valid {info.get('valid_pct',
+                                                                               '?')}% / " f"test {info.get('test_pct',
+                                                                                                           '?')}%  " f"({info.get('train_count',
+                                                                                                                                  0) + info.get('valid_count',
+                                                                                                                                                0) + info.get('test_count',
+                                                                                                                                                              0)} tiles)")
 
     if "methods" in info:              # augmentation version
         methods_str = ", ".join(info.get("methods", []))

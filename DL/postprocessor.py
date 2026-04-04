@@ -58,13 +58,13 @@ from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 class PostProcessWorker(QThread):
 
-    phase_update         = pyqtSignal(str)
-    feature_done         = pyqtSignal(int, int)
+    phase_update = pyqtSignal(str)
+    feature_done = pyqtSignal(int, int)
     postprocess_finished = pyqtSignal(bool, object, str)
 
     def __init__(self, config: dict, parent=None):
         super().__init__(parent)
-        self._config    = config
+        self._config = config
         self._cancelled = False
 
     def stop(self):
@@ -101,7 +101,7 @@ class PostProcessWorker(QThread):
             raise IOError(f"Cannot open vector file: {cfg['input_path']}")
 
         src_layer = src_ds.GetLayer(0)
-        srs       = src_layer.GetSpatialRef()
+        srs = src_layer.GetSpatialRef()
 
         geoms = []
         for feature in src_layer:
@@ -151,7 +151,8 @@ class PostProcessWorker(QThread):
             return
 
         # --- 3 & 4. Area filtering -------------------------------------------
-        do_min = cfg.get("filter_min_area") and float(cfg.get("min_area", 0.0)) > 0
+        do_min = cfg.get("filter_min_area") and float(
+            cfg.get("min_area", 0.0)) > 0
         do_max = cfg.get("filter_max_area") and cfg.get("max_area") is not None
 
         if do_min or do_max:
@@ -175,7 +176,7 @@ class PostProcessWorker(QThread):
         # --- 5. Simplify -----------------------------------------------------
         if cfg.get("simplify") and geoms:
             self.phase_update.emit("Simplifying geometries…")
-            tol   = float(cfg.get("simplify_tolerance", 0.5))
+            tol = float(cfg.get("simplify_tolerance", 0.5))
             geoms = [g.simplify(tol, preserve_topology=True) for g in geoms]
             geoms = [g for g in geoms if g and not g.is_empty]
 
@@ -185,12 +186,13 @@ class PostProcessWorker(QThread):
 
         # --- 6. Smooth edges (per-feature — emits progress) ------------------
         if cfg.get("smooth") and geoms:
-            iters   = int(cfg.get("smooth_iterations", 3))
-            total   = len(geoms)
+            iters = int(cfg.get("smooth_iterations", 3))
+            total = len(geoms)
             smoothed = []
             for i, g in enumerate(geoms):
                 if self._cancelled:
-                    self.postprocess_finished.emit(False, {}, "Stopped by user.")
+                    self.postprocess_finished.emit(
+                        False, {}, "Stopped by user.")
                     return
                 self.phase_update.emit(
                     f"Smoothing edges — {i + 1} / {total}…"
@@ -206,11 +208,12 @@ class PostProcessWorker(QThread):
         _write_gpkg(geoms, srs, cfg["output_path"])
 
         results = {
-            "output_path":  cfg["output_path"],
-            "input_count":  input_count,
+            "output_path": cfg["output_path"],
+            "input_count": input_count,
             "output_count": output_count,
         }
-        self.postprocess_finished.emit(True, results, "Post-processing complete.")
+        self.postprocess_finished.emit(
+            True, results, "Post-processing complete.")
 
 
 # ---------------------------------------------------------------------------
@@ -272,8 +275,9 @@ def _smooth_geom(geom, iterations: int):
 
     if geom.geom_type == "Polygon":
         try:
-            ext  = _chaikin(list(geom.exterior.coords), iterations)
-            ints = [_chaikin(list(r.coords), iterations) for r in geom.interiors]
+            ext = _chaikin(list(geom.exterior.coords), iterations)
+            ints = [_chaikin(list(r.coords), iterations)
+                    for r in geom.interiors]
             return Polygon(ext, ints)
         except Exception:
             return geom
@@ -298,7 +302,7 @@ def _write_gpkg(geoms: list, srs, out_path: str):
     if os.path.exists(out_path):
         drv.DeleteDataSource(out_path)
 
-    out_ds    = drv.CreateDataSource(out_path)
+    out_ds = drv.CreateDataSource(out_path)
     out_layer = out_ds.CreateLayer(
         "prediction", srs=srs, geom_type=ogr.wkbMultiPolygon
     )

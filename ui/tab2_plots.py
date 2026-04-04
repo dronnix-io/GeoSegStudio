@@ -38,11 +38,11 @@ class TrainingPlotWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._epochs       = []
+        self._epochs = []
         self._train_losses = []
-        self._val_losses   = []
-        self._val_ious     = []
-        self._val_f1s      = []
+        self._val_losses = []
+        self._val_ious = []
+        self._val_f1s = []
 
         self.section = ExpandableGroupBox("Training Plots")
         # Collapsed by default — user opens when they want to inspect curves
@@ -136,7 +136,7 @@ class TrainingPlotWidget(QWidget):
     def _draw_empty(self):
         """Render placeholder axes with labels but no data."""
         for ax, title in [
-            (self._ax_loss,    "Loss"),
+            (self._ax_loss, "Loss"),
             (self._ax_metrics, "Val. Accuracy"),
         ]:
             ax.clear()

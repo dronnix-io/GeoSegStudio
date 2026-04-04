@@ -64,13 +64,13 @@ from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 class PredictionWorker(QThread):
 
-    phase_update        = pyqtSignal(str)
-    tile_done           = pyqtSignal(int, int)
+    phase_update = pyqtSignal(str)
+    tile_done = pyqtSignal(int, int)
     prediction_finished = pyqtSignal(bool, object, str)
 
     def __init__(self, config: dict, parent=None):
         super().__init__(parent)
-        self._config    = config
+        self._config = config
         self._cancelled = False
 
     def stop(self):
@@ -87,17 +87,20 @@ class PredictionWorker(QThread):
     # -------------------------------------------------------------------------
 
     def _predict(self):
-        cfg    = self._config
+        cfg = self._config
         device = torch.device(cfg["device"])
 
         # --- Load checkpoint -------------------------------------------------
         self.phase_update.emit("Loading model from checkpoint…")
-        ckpt = torch.load(cfg["checkpoint_path"], map_location=device, weights_only=False)  # nosec B614
+        ckpt = torch.load(
+            cfg["checkpoint_path"],
+            map_location=device,
+            weights_only=False)  # nosec B614
 
         saved = ckpt.get("config", {})
         architecture = ckpt.get("architecture") or saved.get("architecture")
-        in_channels  = saved.get("in_channels")
-        img_size     = saved.get("img_size")
+        in_channels = saved.get("in_channels")
+        img_size = saved.get("img_size")
 
         if not architecture or in_channels is None or img_size is None:
             raise ValueError(
@@ -120,11 +123,11 @@ class PredictionWorker(QThread):
         if src_ds is None:
             raise IOError(f"Cannot open raster: {cfg['input_raster']}")
 
-        raster_w  = src_ds.RasterXSize
-        raster_h  = src_ds.RasterYSize
+        raster_w = src_ds.RasterXSize
+        raster_h = src_ds.RasterYSize
         geo_trans = src_ds.GetGeoTransform()
         projection = src_ds.GetProjection()
-        n_bands   = src_ds.RasterCount
+        n_bands = src_ds.RasterCount
 
         if n_bands != in_channels:
             raise ValueError(
@@ -134,8 +137,8 @@ class PredictionWorker(QThread):
 
         # --- Build tile grid -------------------------------------------------
         overlap_pct = float(cfg.get("overlap_pct", 0.0))
-        stride      = max(1, int(img_size * (1.0 - overlap_pct)))
-        threshold   = float(cfg.get("threshold", 0.5))
+        stride = max(1, int(img_size * (1.0 - overlap_pct)))
+        threshold = float(cfg.get("threshold", 0.5))
 
         xs = list(range(0, raster_w, stride))
         ys = list(range(0, raster_h, stride))
@@ -143,7 +146,7 @@ class PredictionWorker(QThread):
 
         # --- Accumulator arrays (full raster size) ---------------------------
         accumulator = np.zeros((raster_h, raster_w), dtype=np.float32)
-        count_arr   = np.zeros((raster_h, raster_w), dtype=np.float32)
+        count_arr = np.zeros((raster_h, raster_w), dtype=np.float32)
 
         # --- Sliding-window inference ----------------------------------------
         self.phase_update.emit(
@@ -204,14 +207,14 @@ class PredictionWorker(QThread):
 
         # --- Build final binary mask -----------------------------------------
         self.phase_update.emit("Stitching tiles…")
-        count_arr   = np.maximum(count_arr, 1.0)   # avoid divide-by-zero
-        prob_map    = accumulator / count_arr
+        count_arr = np.maximum(count_arr, 1.0)   # avoid divide-by-zero
+        prob_map = accumulator / count_arr
         binary_mask = (prob_map > threshold).astype(np.uint8)  # 0 or 1
 
         # --- Save outputs ----------------------------------------------------
         output_format = cfg.get("output_format", "vector")
-        output_path   = cfg["output_path"]
-        output_paths  = []
+        output_path = cfg["output_path"]
+        output_paths = []
 
         if output_format in ("raster", "both"):
             raster_path = output_path + ".tif"
@@ -301,7 +304,7 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
     from osgeo import gdal, ogr, osr
     gdal.UseExceptions()
 
-    src_ds   = gdal.Open(raster_path, gdal.GA_ReadOnly)
+    src_ds = gdal.Open(raster_path, gdal.GA_ReadOnly)
     src_band = src_ds.GetRasterBand(1)
 
     ext = os.path.splitext(out_path)[1].lower()
@@ -313,7 +316,7 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
     if os.path.exists(out_path):
         ogr.GetDriverByName(drv_name).DeleteDataSource(out_path)
 
-    drv    = ogr.GetDriverByName(drv_name)
+    drv = ogr.GetDriverByName(drv_name)
     out_ds = drv.CreateDataSource(out_path)
 
     srs = osr.SpatialReference()
@@ -327,7 +330,8 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
     # Pass src_band as the mask: only non-zero pixels are polygonized
     gdal.Polygonize(src_band, src_band, layer, 0, [], callback=None)
 
-    # Fill the area field so users can see the exact value the postprocessor uses
+    # Fill the area field so users can see the exact value the postprocessor
+    # uses
     layer.ResetReading()
     for feat in layer:
         geom = feat.GetGeometryRef()
@@ -341,5 +345,5 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
                 pass
 
     out_ds.FlushCache()
-    out_ds  = None
-    src_ds  = None
+    out_ds = None
+    src_ds = None

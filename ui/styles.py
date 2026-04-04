@@ -25,43 +25,43 @@ Usage
 
 class Palette:
     # Brand / accent
-    PRIMARY        = "#2563EB"   # blue — buttons, left-border accents
-    PRIMARY_DARK   = "#1D4ED8"   # hover / pressed state
-    PRIMARY_LIGHT  = "#EFF6FF"   # tinted backgrounds
+    PRIMARY = "#2563EB"   # blue — buttons, left-border accents
+    PRIMARY_DARK = "#1D4ED8"   # hover / pressed state
+    PRIMARY_LIGHT = "#EFF6FF"   # tinted backgrounds
 
     # Section header
-    HEADER_BG      = "#DBEAFE"   # blue-100 — very light blue tint, subtle/transparent feel
-    HEADER_BORDER  = "#93C5FD"   # blue-300 left-border accent — matches pale header tone
-    HEADER_TEXT    = "#1E3A5F"   # dark navy text — readable on light blue bg
-    HEADER_SEP     = "#BFDBFE"   # blue-200 separator
+    HEADER_BG = "#DBEAFE"   # blue-100 — very light blue tint, subtle/transparent feel
+    HEADER_BORDER = "#93C5FD"   # blue-300 left-border accent — matches pale header tone
+    HEADER_TEXT = "#1E3A5F"   # dark navy text — readable on light blue bg
+    HEADER_SEP = "#BFDBFE"   # blue-200 separator
 
     # Content area
-    CONTENT_BG     = "#FFFFFF"
+    CONTENT_BG = "#FFFFFF"
     CONTENT_BORDER = "#E2E8F0"   # subtle border around content
 
     # Metadata cards
-    CARD_BG        = "#F8FAFC"
-    CARD_BORDER    = "#E2E8F0"
-    CARD_LABEL     = "#64748B"   # secondary text (slate-500)
-    CARD_VALUE     = "#1E293B"   # primary text
+    CARD_BG = "#F8FAFC"
+    CARD_BORDER = "#E2E8F0"
+    CARD_LABEL = "#64748B"   # secondary text (slate-500)
+    CARD_VALUE = "#1E293B"   # primary text
 
     # Status colours
-    SUCCESS        = "#16A34A"
-    SUCCESS_BG     = "#F0FDF4"
+    SUCCESS = "#16A34A"
+    SUCCESS_BG = "#F0FDF4"
     SUCCESS_BORDER = "#86EFAC"
 
-    WARNING        = "#D97706"
-    WARNING_BG     = "#FFFBEB"
+    WARNING = "#D97706"
+    WARNING_BG = "#FFFBEB"
     WARNING_BORDER = "#FCD34D"
 
-    ERROR          = "#DC2626"
-    ERROR_BG       = "#FEF2F2"
-    ERROR_BORDER   = "#FCA5A5"
+    ERROR = "#DC2626"
+    ERROR_BG = "#FEF2F2"
+    ERROR_BORDER = "#FCA5A5"
 
     # Neutral
-    SEPARATOR      = "#E2E8F0"
-    DISABLED_TEXT  = "#94A3B8"
-    DISABLED_BG    = "#F1F5F9"
+    SEPARATOR = "#E2E8F0"
+    DISABLED_TEXT = "#94A3B8"
+    DISABLED_BG = "#F1F5F9"
 
 
 # ---------------------------------------------------------------------------

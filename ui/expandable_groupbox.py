@@ -33,7 +33,7 @@ class ExpandableGroupBox(QWidget):
     def __init__(self, title: str = "", parent=None):
         super().__init__(parent)
 
-        # ── Header bar ────────────────────────────────────────────────────────
+        # ── Header bar ───────────────────────────────────────────────────────
         self._header = QFrame()
         self._header.setObjectName("EGB_header")
         self._header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -89,11 +89,12 @@ class ExpandableGroupBox(QWidget):
         # Make the whole header clickable
         self._header.mousePressEvent = self._header_clicked
 
-        # ── Content area ──────────────────────────────────────────────────────
+        # ── Content area ─────────────────────────────────────────────────────
         self.content_area = QFrame()
         self.content_area.setObjectName("EGB_content")
         self.content_area.setFrameShape(QFrame.NoFrame)
-        self.content_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.content_area.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.content_area.setStyleSheet(f"""
             QFrame#EGB_content {{
                 background-color: {Palette.CONTENT_BG};
@@ -104,7 +105,7 @@ class ExpandableGroupBox(QWidget):
         """)
         self.content_area.setVisible(True)
 
-        # ── Outer layout ──────────────────────────────────────────────────────
+        # ── Outer layout ─────────────────────────────────────────────────────
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)

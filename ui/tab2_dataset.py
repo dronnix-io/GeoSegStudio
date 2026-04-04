@@ -30,12 +30,12 @@ class DatasetWidget(QWidget):
         super().__init__(parent)
 
         # Raw integer values populated when a version is selected
-        self._tile_size_int  = None
+        self._tile_size_int = None
         self._band_count_int = None
 
         self.section = ExpandableGroupBox("Dataset")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Dataset directory -----------------------------------------------
         dir_row = QHBoxLayout()
@@ -74,7 +74,8 @@ class DatasetWidget(QWidget):
 
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
-        self.refresh_btn.setToolTip("Re-scan the dataset folder for augmented versions")
+        self.refresh_btn.setToolTip(
+            "Re-scan the dataset folder for augmented versions")
         style_icon_btn(self.refresh_btn)
         dir_row.addWidget(self.refresh_btn)
 
@@ -102,14 +103,16 @@ class DatasetWidget(QWidget):
         # --- Connections -----------------------------------------------------
         self.browse_btn.clicked.connect(self._browse_dataset_dir)
         self.refresh_btn.clicked.connect(self._refresh_versions)
-        self.version_combo.currentIndexChanged.connect(self._on_version_changed)
+        self.version_combo.currentIndexChanged.connect(
+            self._on_version_changed)
 
     # -------------------------------------------------------------------------
     # Internal helpers
     # -------------------------------------------------------------------------
 
     def _browse_dataset_dir(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Dataset Folder")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Dataset Folder")
         if folder:
             self.dir_edit.setText(folder)
             self._refresh_versions()
@@ -141,8 +144,7 @@ class DatasetWidget(QWidget):
                 hint = (
                     "This does not look like a dataset folder. "
                     "Select the folder ending with '_dataset' that contains "
-                    "the 'augmented/', 'clipping/', and 'splitting/' subfolders."
-                )
+                    "the 'augmented/', 'clipping/', and 'splitting/' subfolders.")
             self.dir_hint_lbl.setText(f"<span style='color:red'>{hint}</span>")
             self.dir_hint_lbl.setWordWrap(True)
             self.dir_hint_lbl.setVisible(True)
@@ -172,7 +174,7 @@ class DatasetWidget(QWidget):
         self._clear_summary()
 
         dataset_dir = self.dir_edit.text().strip()
-        version     = self.version_combo.currentData()
+        version = self.version_combo.currentData()
 
         if not dataset_dir or version is None:
             self.summary_updated.emit()
@@ -180,35 +182,39 @@ class DatasetWidget(QWidget):
 
         try:
             aug_path = os.path.join(
-                dataset_dir, "augmented", f"v{version}", "augmentation_info.json"
-            )
+                dataset_dir,
+                "augmented",
+                f"v{version}",
+                "augmentation_info.json")
             with open(aug_path) as f:
                 aug = json.load(f)
 
             # Tile size and band count live in the linked clipping_info.json
-            tile_size  = "—"
+            tile_size = "—"
             band_count = "—"
-            clip_ver   = aug.get("based_on_clipping_version")
+            clip_ver = aug.get("based_on_clipping_version")
             if clip_ver is not None:
                 clip_path = os.path.join(
-                    dataset_dir, "clipping", f"v{clip_ver}", "clipping_info.json"
-                )
+                    dataset_dir,
+                    "clipping",
+                    f"v{clip_ver}",
+                    "clipping_info.json")
                 if os.path.isfile(clip_path):
                     with open(clip_path) as f:
                         clip = json.load(f)
-                    ws                   = clip.get("window_size")
-                    bc                   = clip.get("band_count")
-                    self._tile_size_int  = int(ws) if ws is not None else None
+                    ws = clip.get("window_size")
+                    bc = clip.get("band_count")
+                    self._tile_size_int = int(ws) if ws is not None else None
                     self._band_count_int = int(bc) if bc is not None else None
-                    tile_size            = f"{ws} × {ws} px" if ws else "?"
-                    band_count           = str(bc) if bc else "?"
+                    tile_size = f"{ws} × {ws} px" if ws else "?"
+                    band_count = str(bc) if bc else "?"
 
             self.summary_cards.set_cards([
-                ("Tile Size",   tile_size),
-                ("Bands",       band_count),
+                ("Tile Size", tile_size),
+                ("Bands", band_count),
                 ("Train tiles", str(aug.get("train_count", "?"))),
-                ("Val tiles",   str(aug.get("valid_count", "?"))),
-                ("Test tiles",  str(aug.get("test_count",  "?"))),
+                ("Val tiles", str(aug.get("valid_count", "?"))),
+                ("Test tiles", str(aug.get("test_count", "?"))),
             ])
 
         except Exception:
@@ -217,7 +223,7 @@ class DatasetWidget(QWidget):
         self.summary_updated.emit()
 
     def _clear_summary(self):
-        self._tile_size_int  = None
+        self._tile_size_int = None
         self._band_count_int = None
         self.summary_cards.clear_cards()
 
@@ -244,6 +250,9 @@ class DatasetWidget(QWidget):
     def get_summary(self) -> dict:
         """Returns the current summary as a dict built from internal state."""
         return {
-            "tile_size":  f"{self._tile_size_int} × {self._tile_size_int} px" if self._tile_size_int else "—",
-            "band_count": str(self._band_count_int) if self._band_count_int else "—",
+            "tile_size": f"{
+                self._tile_size_int} × {
+                self._tile_size_int} px" if self._tile_size_int else "—",
+            "band_count": str(
+                self._band_count_int) if self._band_count_int else "—",
         }

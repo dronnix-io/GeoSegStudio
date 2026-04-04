@@ -41,12 +41,9 @@ def _detect_devices() -> tuple:
         )
 
     if not torch.cuda.is_available():
-        return devices, (
-            "PyTorch found but CUDA is not available.\n"
-            "A CPU-only version of PyTorch may be installed, or GPU drivers "
-            "are missing. Re-install PyTorch with CUDA support to use your GPU.",
-            True,
-        )
+        return devices, ("PyTorch found but CUDA is not available.\n"
+                         "A CPU-only version of PyTorch may be installed, or GPU drivers "
+                         "are missing. Re-install PyTorch with CUDA support to use your GPU.", True, )
 
     count = torch.cuda.device_count()
     for i in range(count):
@@ -66,7 +63,7 @@ class HardwareWidget(QWidget):
 
         self.section = ExpandableGroupBox("Hardware")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Device ----------------------------------------------------------
         device_row = QHBoxLayout()
@@ -142,7 +139,8 @@ class HardwareWidget(QWidget):
 
         # Show status hint
         color = "red" if is_error else "green"
-        self.device_hint.setText(f"<span style='color:{color}'>{message}</span>")
+        self.device_hint.setText(
+            f"<span style='color:{color}'>{message}</span>")
         self.device_hint.setVisible(True)
 
     # -------------------------------------------------------------------------
@@ -152,6 +150,6 @@ class HardwareWidget(QWidget):
     def get_hardware_config(self) -> dict:
         """Returns the hardware configuration as a dict."""
         return {
-            "device":      self.device_combo.currentData(),
+            "device": self.device_combo.currentData(),
             "num_workers": self.workers_spin.value(),
         }

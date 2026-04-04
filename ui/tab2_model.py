@@ -19,13 +19,13 @@ from .section_content_widget import SectionContentWidget
 
 # Display name → registry key  (order matches the architectures.py listing)
 _ARCHITECTURES = [
-    ("UNet",           "unet"),
+    ("UNet", "unet"),
     ("Attention UNet", "attention_unet"),
-    ("UNet++",         "unet_pp"),
-    ("Swin UNet",      "swin_unet"),
-    ("LinkNet",        "linknet"),
-    ("DeepLabV3+",     "deeplabv3plus"),
-    ("SegFormer",      "segformer"),
+    ("UNet++", "unet_pp"),
+    ("Swin UNet", "swin_unet"),
+    ("LinkNet", "linknet"),
+    ("DeepLabV3+", "deeplabv3plus"),
+    ("SegFormer", "segformer"),
 ]
 
 
@@ -35,7 +35,7 @@ class ModelWidget(QWidget):
 
         self.section = ExpandableGroupBox("Model")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Architecture ----------------------------------------------------
         self.arch_combo = QComboBox()
@@ -64,8 +64,7 @@ class ModelWidget(QWidget):
         self.base_ch_spin.setToolTip(
             "Feature-map width at the first encoder stage (doubles each stage).\n"
             "Applies to: UNet, Attention UNet, UNet++, LinkNet, DeepLabV3+.\n"
-            "Has no effect on Swin UNet and SegFormer (they use embed_dim)."
-        )
+            "Has no effect on Swin UNet and SegFormer (they use embed_dim).")
         adv_form.addRow("Base Channels", self.base_ch_spin)
 
         self.adv_content.setVisible(False)
@@ -103,6 +102,6 @@ class ModelWidget(QWidget):
         assembling the full training config.
         """
         return {
-            "architecture":  self.arch_combo.currentData(),
+            "architecture": self.arch_combo.currentData(),
             "base_channels": self.base_ch_spin.value(),
         }

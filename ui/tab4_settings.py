@@ -32,7 +32,8 @@ def _detect_devices():
         return devices, ("CUDA not available.", True)
     count = torch.cuda.device_count()
     for i in range(count):
-        devices.append((f"CUDA:{i}  ({torch.cuda.get_device_name(i)})", f"cuda:{i}"))
+        devices.append(
+            (f"CUDA:{i}  ({torch.cuda.get_device_name(i)})", f"cuda:{i}"))
     msg = f"{count} GPU{'s' if count > 1 else ''} detected."
     return devices, (msg, False)
 
@@ -43,7 +44,7 @@ class PredictSettingsWidget(QWidget):
 
         self.section = ExpandableGroupBox("Settings")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Device ----------------------------------------------------------
         device_row = QHBoxLayout()
@@ -76,8 +77,7 @@ class PredictSettingsWidget(QWidget):
             "Percentage of the tile size used as overlap between adjacent tiles.\n"
             "0 % — no overlap, fastest, may show seam artefacts at tile edges.\n"
             "25–50 % — overlapping tiles are averaged, smoother result.\n"
-            "Higher overlap increases tile count and processing time."
-        )
+            "Higher overlap increases tile count and processing time.")
         self.overlap_spin.valueChanged.connect(self._update_tile_estimate)
         self.form.addRow("Overlap", self.overlap_spin)
 
@@ -105,9 +105,9 @@ class PredictSettingsWidget(QWidget):
         self.form.addRow("Est. Tiles", self.tile_count_lbl)
 
         # Internal state for tile count calculation
-        self._img_size   = None
-        self._raster_w   = None
-        self._raster_h   = None
+        self._img_size = None
+        self._raster_w = None
+        self._raster_h = None
 
         # --- Assemble section ------------------------------------------------
         section_layout = QVBoxLayout()
@@ -134,7 +134,8 @@ class PredictSettingsWidget(QWidget):
             self.device_combo.setCurrentIndex(1)
         self.device_combo.blockSignals(False)
         color = "red" if is_error else "green"
-        self.device_hint.setText(f"<span style='color:{color}'>{message}</span>")
+        self.device_hint.setText(
+            f"<span style='color:{color}'>{message}</span>")
         self.device_hint.setVisible(True)
 
     def _update_tile_estimate(self):
@@ -145,7 +146,7 @@ class PredictSettingsWidget(QWidget):
             return
 
         overlap_pct = self.overlap_spin.value() / 100.0
-        stride      = max(1, int(self._img_size * (1.0 - overlap_pct)))
+        stride = max(1, int(self._img_size * (1.0 - overlap_pct)))
         n_x = len(range(0, self._raster_w, stride))
         n_y = len(range(0, self._raster_h, stride))
         self.tile_count_lbl.setText(f"~{n_x * n_y:,}")
@@ -154,7 +155,11 @@ class PredictSettingsWidget(QWidget):
     # Public API
     # -------------------------------------------------------------------------
 
-    def update_tile_estimate(self, img_size: int, raster_w: int, raster_h: int):
+    def update_tile_estimate(
+            self,
+            img_size: int,
+            raster_w: int,
+            raster_h: int):
         """Called by Tab4Widget whenever model or raster selection changes."""
         self._img_size = img_size
         self._raster_w = raster_w
@@ -163,7 +168,7 @@ class PredictSettingsWidget(QWidget):
 
     def get_settings_config(self) -> dict:
         return {
-            "device":      self.device_combo.currentData(),
+            "device": self.device_combo.currentData(),
             "overlap_pct": self.overlap_spin.value() / 100.0,
-            "threshold":   self.threshold_spin.value(),
+            "threshold": self.threshold_spin.value(),
         }

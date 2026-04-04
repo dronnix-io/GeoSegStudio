@@ -43,19 +43,20 @@ def run_splitting(config: dict,
             split_percentages (dict: train/valid/test),
             cpu_count (int)
     """
-    prefix           = config.get("prefix", "dataset").strip() or "dataset"
+    prefix = config.get("prefix", "dataset").strip() or "dataset"
     clipping_version = config["clipping_version"]
-    split_pct        = config["split_percentages"]
-    output_dir       = config["output_dir"]
-    cpu_count        = config.get("cpu_count", 1)
+    split_pct = config["split_percentages"]
+    output_dir = config["output_dir"]
+    cpu_count = config.get("cpu_count", 1)
 
     dataset_dir = os.path.join(output_dir, f"{prefix}_dataset")
-    clip_dir    = os.path.join(dataset_dir, "clipping", f"v{clipping_version}")
-    src_images  = os.path.join(clip_dir, "images")
-    src_masks   = os.path.join(clip_dir, "masks")
+    clip_dir = os.path.join(dataset_dir, "clipping", f"v{clipping_version}")
+    src_images = os.path.join(clip_dir, "images")
+    src_masks = os.path.join(clip_dir, "masks")
 
     # --- Collect and shuffle tile names --------------------------------------
-    tile_names = sorted(f for f in os.listdir(src_images) if f.endswith(".tif"))
+    tile_names = sorted(f for f in os.listdir(
+        src_images) if f.endswith(".tif"))
     random.seed(42)
     random.shuffle(tile_names)
     total = len(tile_names)
@@ -66,34 +67,34 @@ def run_splitting(config: dict,
     subsets = {
         "train": tile_names[:n_train],
         "valid": tile_names[n_train: n_train + n_valid],
-        "test":  tile_names[n_train + n_valid:],
+        "test": tile_names[n_train + n_valid:],
     }
 
     # --- Versioned output directories ----------------------------------------
-    version     = _next_version(dataset_dir, "splitting")
+    version = _next_version(dataset_dir, "splitting")
     version_dir = os.path.join(dataset_dir, "splitting", f"v{version}")
 
     for subset in ("train", "valid", "test"):
         os.makedirs(os.path.join(version_dir, subset, "images"), exist_ok=True)
-        os.makedirs(os.path.join(version_dir, subset, "masks"),  exist_ok=True)
+        os.makedirs(os.path.join(version_dir, subset, "masks"), exist_ok=True)
 
     # --- Build copy task list ------------------------------------------------
     copy_tasks = []
     for subset, names in subsets.items():
         dst_images = os.path.join(version_dir, subset, "images")
-        dst_masks  = os.path.join(version_dir, subset, "masks")
+        dst_masks = os.path.join(version_dir, subset, "masks")
         for name in names:
             copy_tasks.append({
-                "src_img":  os.path.join(src_images, name),
-                "src_mask": os.path.join(src_masks,  name),
-                "dst_img":  os.path.join(dst_images, name),
-                "dst_mask": os.path.join(dst_masks,  name),
-                "subset":   subset,
-                "name":     name,
+                "src_img": os.path.join(src_images, name),
+                "src_mask": os.path.join(src_masks, name),
+                "dst_img": os.path.join(dst_images, name),
+                "dst_mask": os.path.join(dst_masks, name),
+                "subset": subset,
+                "name": name,
             })
 
     # --- Parallel copy -------------------------------------------------------
-    counts    = {"train": 0, "valid": 0, "test": 0}
+    counts = {"train": 0, "valid": 0, "test": 0}
     completed = 0
 
     with ThreadPoolExecutor(max_workers=cpu_count) as executor:
@@ -114,30 +115,34 @@ def run_splitting(config: dict,
     clipping_info = _read_json(os.path.join(clip_dir, "clipping_info.json"))
 
     info = {
-        "version":                   version,
-        "created":                   datetime.now().isoformat(),
+        "version": version,
+        "created": datetime.now().isoformat(),
         "based_on_clipping_version": clipping_version,
-        "clipping_raster_layer":     clipping_info.get("raster_layer", ""),
-        "clipping_vector_layer":     clipping_info.get("vector_layer", ""),
-        "train_pct":                 split_pct["train"],
-        "valid_pct":                 split_pct["valid"],
-        "test_pct":                  split_pct["test"],
-        "train_count":               counts["train"],
-        "valid_count":               counts["valid"],
-        "test_count":                counts["test"],
+        "clipping_raster_layer": clipping_info.get("raster_layer", ""),
+        "clipping_vector_layer": clipping_info.get("vector_layer", ""),
+        "train_pct": split_pct["train"],
+        "valid_pct": split_pct["valid"],
+        "test_pct": split_pct["test"],
+        "train_count": counts["train"],
+        "valid_count": counts["valid"],
+        "test_count": counts["test"],
     }
     _write_json(os.path.join(version_dir, "splitting_info.json"), info)
 
     return {
-        "version":     version,
-        "counts":      counts,
+        "version": version,
+        "counts": counts,
         "version_dir": version_dir,
     }
 
 
 def get_available_versions(dataset_dir: str) -> list:
     """Returns sorted list of existing splitting version dicts."""
-    return _scan_versions(os.path.join(dataset_dir, "splitting"), "splitting_info.json")
+    return _scan_versions(
+        os.path.join(
+            dataset_dir,
+            "splitting"),
+        "splitting_info.json")
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +152,7 @@ def get_available_versions(dataset_dir: str) -> list:
 def _copy_tile_pair(task: dict) -> str:
     """Copies one image+mask pair. Returns the subset name."""
     if os.path.isfile(task["src_img"]):
-        shutil.copy2(task["src_img"],  task["dst_img"])
+        shutil.copy2(task["src_img"], task["dst_img"])
     if os.path.isfile(task["src_mask"]):
         shutil.copy2(task["src_mask"], task["dst_mask"])
     return task["subset"]

@@ -43,7 +43,7 @@ class SplittingWidget(QWidget):
         # --- Split percentage spin boxes ------------------------------------
         self.train_spin = QSpinBox()
         self.valid_spin = QSpinBox()
-        self.test_spin  = QSpinBox()
+        self.test_spin = QSpinBox()
 
         for spin in (self.train_spin, self.valid_spin, self.test_spin):
             spin.setRange(0, 100)
@@ -53,9 +53,9 @@ class SplittingWidget(QWidget):
         self.valid_spin.setValue(10)
         self.test_spin.setValue(10)
 
-        self.form.addRow("Training %",   self.train_spin)
+        self.form.addRow("Training %", self.train_spin)
         self.form.addRow("Validation %", self.valid_spin)
-        self.form.addRow("Testing %",    self.test_spin)
+        self.form.addRow("Testing %", self.test_spin)
 
         self.train_spin.valueChanged.connect(self._validate_total)
         self.valid_spin.valueChanged.connect(self._validate_total)
@@ -111,7 +111,8 @@ class SplittingWidget(QWidget):
         """
         self.clipping_version_combo.clear()
         if not versions:
-            self.clipping_version_combo.addItem("No clipping versions found", None)
+            self.clipping_version_combo.addItem(
+                "No clipping versions found", None)
             self.apply_btn.setEnabled(False)
         else:
             for v in versions:
@@ -154,7 +155,7 @@ class SplittingWidget(QWidget):
         return {
             "train": self.train_spin.value(),
             "valid": self.valid_spin.value(),
-            "test":  self.test_spin.value(),
+            "test": self.test_spin.value(),
         }
 
     # -------------------------------------------------------------------------

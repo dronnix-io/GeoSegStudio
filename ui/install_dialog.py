@@ -36,8 +36,8 @@ from ..DL.env_manager import CUDA_OPTIONS, create_env, get_pip_cmd
 class _InstallWorker(QThread):
     """Creates the env, then runs pip, streaming output line-by-line."""
 
-    log_line  = pyqtSignal(str)   # one line of pip output
-    finished  = pyqtSignal(bool, str)  # (success, message)
+    log_line = pyqtSignal(str)   # one line of pip output
+    finished = pyqtSignal(bool, str)  # (success, message)
 
     def __init__(self, cuda_key: str, parent=None):
         super().__init__(parent)
@@ -70,7 +70,9 @@ class _InstallWorker(QThread):
             if proc.returncode == 0:
                 self.finished.emit(True, "Installation complete.")
             else:
-                self.finished.emit(False, f"pip exited with code {proc.returncode}.")
+                self.finished.emit(
+                    False, f"pip exited with code {
+                        proc.returncode}.")
         except Exception as exc:
             self.finished.emit(False, str(exc))
 
@@ -109,7 +111,8 @@ class InstallDialog(QDialog):
         self.cuda_combo = QComboBox()
         for key, (label, _) in CUDA_OPTIONS.items():
             self.cuda_combo.addItem(label, key)
-        # Default to CPU (last item) so users don't accidentally pick wrong CUDA
+        # Default to CPU (last item) so users don't accidentally pick wrong
+        # CUDA
         self.cuda_combo.setCurrentIndex(len(CUDA_OPTIONS) - 1)
         opt_row.addWidget(self.cuda_combo, 1)
         layout.addLayout(opt_row)
@@ -118,8 +121,11 @@ class InstallDialog(QDialog):
         self.log_edit = QTextEdit()
         self.log_edit.setReadOnly(True)
         self.log_edit.setFont(QFont("Courier New", 9))
-        self.log_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.log_edit.setPlaceholderText("Installation output will appear here …")
+        self.log_edit.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Expanding)
+        self.log_edit.setPlaceholderText(
+            "Installation output will appear here …")
         layout.addWidget(self.log_edit)
 
         # --- Progress bar ----------------------------------------------------

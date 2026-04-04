@@ -68,13 +68,13 @@ class TrainingWorker(QThread):
     """
 
     # Signals -----------------------------------------------------------------
-    phase_update      = pyqtSignal(str)
+    phase_update = pyqtSignal(str)
     # Short human-readable message describing the current step.
 
-    epoch_done        = pyqtSignal(int, float, float, float, float)
+    epoch_done = pyqtSignal(int, float, float, float, float)
     # epoch (1-based relative), train_loss, val_loss, val_iou, val_f1
 
-    batch_progress    = pyqtSignal(int, int, str)
+    batch_progress = pyqtSignal(int, int, str)
     # batches_done, total_batches, phase ("Train" | "Val")
 
     training_finished = pyqtSignal(bool, str)
@@ -86,7 +86,7 @@ class TrainingWorker(QThread):
 
     def __init__(self, config: dict, parent=None):
         super().__init__(parent)
-        self._config    = config
+        self._config = config
         self._cancelled = False
 
     def stop(self):
@@ -108,7 +108,7 @@ class TrainingWorker(QThread):
     # -------------------------------------------------------------------------
 
     def _train(self):
-        cfg    = self._config
+        cfg = self._config
         device = torch.device(cfg["device"])
 
         # --- Model -----------------------------------------------------------
@@ -136,12 +136,12 @@ class TrainingWorker(QThread):
         train_loader, val_loader = build_dataloaders({
             "dataset_dir": cfg["dataset_dir"],
             "aug_version": cfg["aug_version"],
-            "batch_size":  cfg["batch_size"],
+            "batch_size": cfg["batch_size"],
         })
 
         # --- Resume from checkpoint ------------------------------------------
         start_epoch = 1
-        best_iou    = -1.0
+        best_iou = -1.0
 
         if cfg.get("resume_path"):
             self.phase_update.emit("Resuming from checkpoint...")
@@ -160,7 +160,8 @@ class TrainingWorker(QThread):
             rel_epoch = epoch - start_epoch + 1  # 1-based for display
 
             # Train phase
-            self.phase_update.emit(f"Epoch {rel_epoch}/{total_epochs} — Training...")
+            self.phase_update.emit(
+                f"Epoch {rel_epoch}/{total_epochs} — Training...")
             train_loss = self._run_phase(
                 model, train_loader, criterion, optimizer, device,
                 phase="Train", train=True,
@@ -171,7 +172,8 @@ class TrainingWorker(QThread):
                 return
 
             # Validation phase
-            self.phase_update.emit(f"Epoch {rel_epoch}/{total_epochs} — Validating...")
+            self.phase_update.emit(
+                f"Epoch {rel_epoch}/{total_epochs} — Validating...")
             val_loss, val_iou, val_f1 = self._run_phase(
                 model, val_loader, criterion, None, device,
                 phase="Val", train=False,
@@ -179,13 +181,19 @@ class TrainingWorker(QThread):
 
             # Scheduler step
             if scheduler is not None:
-                if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                if isinstance(scheduler,
+                              torch.optim.lr_scheduler.ReduceLROnPlateau):
                     scheduler.step(val_loss)
                 else:
                     scheduler.step()
 
             # Emit epoch metrics to UI
-            self.epoch_done.emit(rel_epoch, train_loss, val_loss, val_iou, val_f1)
+            self.epoch_done.emit(
+                rel_epoch,
+                train_loss,
+                val_loss,
+                val_iou,
+                val_f1)
 
             # Checkpoint saving
             is_best = val_iou > best_iou
@@ -193,7 +201,8 @@ class TrainingWorker(QThread):
                 best_iou = val_iou
 
             if cfg.get("output_dir"):
-                self.phase_update.emit(f"Epoch {rel_epoch}/{total_epochs} — Saving checkpoint...")
+                self.phase_update.emit(
+                    f"Epoch {rel_epoch}/{total_epochs} — Saving checkpoint...")
                 self._maybe_save(
                     model, optimizer, cfg, epoch, rel_epoch, val_iou, is_best
                 )
@@ -224,10 +233,10 @@ class TrainingWorker(QThread):
         train phase : float                      (avg loss)
         val   phase : (float, float, float)      (avg loss, avg iou, avg f1)
         """
-        n_batches  = len(loader)
+        n_batches = len(loader)
         total_loss = 0.0
-        total_iou  = 0.0
-        total_f1   = 0.0
+        total_iou = 0.0
+        total_f1 = 0.0
 
         if train:
             model.train()
@@ -236,7 +245,7 @@ class TrainingWorker(QThread):
                     break
 
                 images = images.to(device, non_blocking=True)
-                masks  = masks.to(device, non_blocking=True)
+                masks = masks.to(device, non_blocking=True)
 
                 optimizer.zero_grad()
                 logits = model(images)
@@ -259,7 +268,7 @@ class TrainingWorker(QThread):
                         break
 
                     images = images.to(device, non_blocking=True)
-                    masks  = masks.to(device, non_blocking=True)
+                    masks = masks.to(device, non_blocking=True)
 
                     logits = model(images)
                     if isinstance(logits, (list, tuple)):
@@ -270,7 +279,7 @@ class TrainingWorker(QThread):
 
                     iou, f1 = _compute_metrics(logits, masks)
                     total_iou += iou
-                    total_f1  += f1
+                    total_f1 += f1
 
                     self.batch_progress.emit(batch_idx + 1, n_batches, phase)
 
@@ -320,7 +329,10 @@ class TrainingWorker(QThread):
     @staticmethod
     def _load_checkpoint(path: str, model, optimizer, device):
         """Loads state from a .pth checkpoint. Returns (start_epoch, best_iou)."""
-        data = torch.load(path, map_location=device, weights_only=False)  # nosec B614
+        data = torch.load(
+            path,
+            map_location=device,
+            weights_only=False)  # nosec B614
         model.load_state_dict(data["model_state_dict"])
         if "optimizer_state_dict" in data:
             try:
@@ -328,14 +340,14 @@ class TrainingWorker(QThread):
             except Exception:
                 pass  # ignore if optimizer shape changed (fine-tune scenario)
         start_epoch = data.get("epoch", 0) + 1
-        best_iou    = data.get("val_iou", -1.0) or -1.0
+        best_iou = data.get("val_iou", -1.0) or -1.0
         return start_epoch, best_iou
 
     @staticmethod
     def _maybe_save(model, optimizer, cfg, epoch, rel_epoch, val_iou, is_best):
         """Saves a checkpoint according to the configured strategy."""
-        output_dir    = cfg.get("output_dir", "").strip()
-        model_name    = cfg.get("model_name", "model").strip() or "model"
+        output_dir = cfg.get("output_dir", "").strip()
+        model_name = cfg.get("model_name", "model").strip() or "model"
         save_strategy = cfg.get("save_strategy", "best")
 
         if not output_dir:
@@ -344,10 +356,10 @@ class TrainingWorker(QThread):
         os.makedirs(output_dir, exist_ok=True)
 
         payload = {
-            "architecture":         cfg["architecture"],
-            "epoch":                epoch,
-            "val_iou":              val_iou,
-            "model_state_dict":     model.state_dict(),
+            "architecture": cfg["architecture"],
+            "epoch": epoch,
+            "val_iou": val_iou,
+            "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "config": {
                 k: cfg[k]
@@ -382,7 +394,7 @@ def _compute_metrics(logits: torch.Tensor, targets: torch.Tensor):
     iou, f1 : float, float
     """
     with torch.no_grad():
-        preds   = (torch.sigmoid(logits) > 0.5).float().view(-1)
+        preds = (torch.sigmoid(logits) > 0.5).float().view(-1)
         targets = targets.view(-1)
 
         tp = (preds * targets).sum().item()
@@ -390,6 +402,6 @@ def _compute_metrics(logits: torch.Tensor, targets: torch.Tensor):
         fn = ((1 - preds) * targets).sum().item()
 
         iou = tp / (tp + fp + fn + 1e-7)
-        f1  = 2 * tp / (2 * tp + fp + fn + 1e-7)
+        f1 = 2 * tp / (2 * tp + fp + fn + 1e-7)
 
     return iou, f1

@@ -19,11 +19,11 @@ from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QScrollArea, QSizePolicy, QMessageBox,
 )
 
-from .tab4_model       import PredictModelWidget
-from .tab4_input       import PredictInputWidget
-from .tab4_settings    import PredictSettingsWidget
-from .tab4_output      import PredictOutputWidget
-from .tab4_run         import PredictRunWidget
+from .tab4_model import PredictModelWidget
+from .tab4_input import PredictInputWidget
+from .tab4_settings import PredictSettingsWidget
+from .tab4_output import PredictOutputWidget
+from .tab4_run import PredictRunWidget
 from .tab4_postprocess import PostProcessWidget
 
 
@@ -31,14 +31,14 @@ class Tab4Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.model      = PredictModelWidget()
-        self.input      = PredictInputWidget()
-        self.settings   = PredictSettingsWidget()
-        self.output     = PredictOutputWidget()
-        self.run        = PredictRunWidget()
+        self.model = PredictModelWidget()
+        self.input = PredictInputWidget()
+        self.settings = PredictSettingsWidget()
+        self.output = PredictOutputWidget()
+        self.run = PredictRunWidget()
         self.postprocess = PostProcessWidget()
 
-        self._worker    = None   # PredictionWorker while running
+        self._worker = None   # PredictionWorker while running
         self._worker_pp = None   # PostProcessWorker while running
 
         main_layout = QVBoxLayout(self)
@@ -81,9 +81,9 @@ class Tab4Widget(QWidget):
     # -------------------------------------------------------------------------
 
     def _refresh_tile_estimate(self):
-        meta     = self.model.get_metadata()
+        meta = self.model.get_metadata()
         img_size = meta.get("img_size")
-        rw, rh   = self.input.get_raster_size()
+        rw, rh = self.input.get_raster_size()
         if img_size and rw and rh:
             self.settings.update_tile_estimate(img_size, rw, rh)
 
@@ -123,9 +123,9 @@ class Tab4Widget(QWidget):
             self._worker = None
             return
 
-        output_paths  = results.get("output_paths", [])
+        output_paths = results.get("output_paths", [])
         output_format = results.get("output_format", "")
-        tile_count    = results.get("tile_count", 0)
+        tile_count = results.get("tile_count", 0)
 
         paths_str = "  |  ".join(output_paths)
         self.run.set_status(
@@ -186,8 +186,8 @@ class Tab4Widget(QWidget):
             self._worker_pp = None
             return
 
-        output_path  = results.get("output_path", "")
-        input_count  = results.get("input_count", 0)
+        output_path = results.get("output_path", "")
+        input_count = results.get("input_count", 0)
         output_count = results.get("output_count", 0)
 
         self.postprocess.set_status(
@@ -210,7 +210,7 @@ class Tab4Widget(QWidget):
             from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer
 
             for path in paths:
-                ext  = os.path.splitext(path)[1].lower()
+                ext = os.path.splitext(path)[1].lower()
                 name = os.path.splitext(os.path.basename(path))[0]
 
                 if ext in (".tif", ".tiff"):
@@ -230,7 +230,7 @@ class Tab4Widget(QWidget):
     def _build_config(self) -> tuple:
         # Model
         checkpoint_path = self.model.get_checkpoint_path()
-        meta            = self.model.get_metadata()
+        meta = self.model.get_metadata()
 
         if not checkpoint_path:
             return None, "Please select a checkpoint file."
@@ -241,11 +241,11 @@ class Tab4Widget(QWidget):
             )
 
         in_channels = meta["in_channels"]
-        img_size    = meta["img_size"]
+        img_size = meta["img_size"]
 
         # Input raster
         raster_path = self.input.get_raster_path()
-        band_count  = self.input.get_band_count()
+        band_count = self.input.get_band_count()
 
         if not raster_path:
             return None, "Please select an input raster file."
@@ -267,20 +267,18 @@ class Tab4Widget(QWidget):
         # Output
         out_cfg = self.output.get_output_config()
         if not out_cfg["output_path"]:
-            return None, (
-                "Please set an output folder and name.\n"
-                "Use the Output section to select a folder and enter a base filename."
-            )
+            return None, ("Please set an output folder and name.\n"
+                          "Use the Output section to select a folder and enter a base filename.")
 
         return {
             "checkpoint_path": checkpoint_path,
-            "input_raster":    raster_path,
-            "img_size":        img_size,
-            "overlap_pct":     settings_cfg["overlap_pct"],
-            "threshold":       settings_cfg["threshold"],
-            "device":          settings_cfg["device"],
-            "output_format":   out_cfg["output_format"],
-            "output_path":     out_cfg["output_path"],
+            "input_raster": raster_path,
+            "img_size": img_size,
+            "overlap_pct": settings_cfg["overlap_pct"],
+            "threshold": settings_cfg["threshold"],
+            "device": settings_cfg["device"],
+            "output_format": out_cfg["output_format"],
+            "output_path": out_cfg["output_path"],
         }, None
 
     def _build_postprocess_config(self) -> tuple:

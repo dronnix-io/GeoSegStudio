@@ -7,6 +7,7 @@ from .tab2 import Tab2Widget
 from .tab3 import Tab3Widget
 from .tab4 import Tab4Widget
 
+
 class GeoSegStudioDockWidget(QDockWidget):
     def __init__(self, iface, parent=None):
         super().__init__("GeoSeg Studio", parent)
@@ -23,10 +24,10 @@ class GeoSegStudioDockWidget(QDockWidget):
         self.tab4 = Tab4Widget()
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(Tab1Widget(),  "Prepare")
-        self.tabs.addTab(self.tab2,     "Train")
-        self.tabs.addTab(self.tab3,     "Evaluate")
-        self.tabs.addTab(self.tab4,     "Predict")
+        self.tabs.addTab(Tab1Widget(), "Prepare")
+        self.tabs.addTab(self.tab2, "Train")
+        self.tabs.addTab(self.tab3, "Evaluate")
+        self.tabs.addTab(self.tab4, "Predict")
 
         layout.addWidget(self.tabs)
         self.setWidget(main_widget)

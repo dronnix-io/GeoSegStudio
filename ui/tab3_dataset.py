@@ -23,9 +23,9 @@ from .styles import style_icon_btn
 
 
 _SPLITS = [
-    ("Test  (recommended)",  "test"),
-    ("Validation",           "valid"),
-    ("Train",                "train"),
+    ("Test  (recommended)", "test"),
+    ("Validation", "valid"),
+    ("Train", "train"),
 ]
 
 
@@ -35,7 +35,7 @@ class EvalDatasetWidget(QWidget):
 
         self.section = ExpandableGroupBox("Dataset")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Dataset directory -----------------------------------------------
         dir_row = QHBoxLayout()
@@ -71,7 +71,8 @@ class EvalDatasetWidget(QWidget):
 
         self.refresh_btn = QPushButton("↻")
         self.refresh_btn.setFixedWidth(28)
-        self.refresh_btn.setToolTip("Re-scan the dataset folder for augmented versions.")
+        self.refresh_btn.setToolTip(
+            "Re-scan the dataset folder for augmented versions.")
         style_icon_btn(self.refresh_btn)
         dir_row.addWidget(self.refresh_btn)
 
@@ -110,14 +111,16 @@ class EvalDatasetWidget(QWidget):
         # --- Connections -----------------------------------------------------
         self.browse_btn.clicked.connect(self._browse_dataset_dir)
         self.refresh_btn.clicked.connect(self._refresh_versions)
-        self.version_combo.currentIndexChanged.connect(self._on_version_changed)
+        self.version_combo.currentIndexChanged.connect(
+            self._on_version_changed)
 
     # -------------------------------------------------------------------------
     # Internal helpers
     # -------------------------------------------------------------------------
 
     def _browse_dataset_dir(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Dataset Folder")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Dataset Folder")
         if folder:
             self.dir_edit.setText(folder)
             self._refresh_versions()
@@ -174,21 +177,23 @@ class EvalDatasetWidget(QWidget):
     def _on_version_changed(self):
         self._clear_summary()
         dataset_dir = self.dir_edit.text().strip()
-        version     = self.version_combo.currentData()
+        version = self.version_combo.currentData()
 
         if not dataset_dir or version is None:
             return
 
         try:
             aug_path = os.path.join(
-                dataset_dir, "augmented", f"v{version}", "augmentation_info.json"
-            )
+                dataset_dir,
+                "augmented",
+                f"v{version}",
+                "augmentation_info.json")
             with open(aug_path) as f:
                 aug = json.load(f)
             self.summary_cards.set_cards([
                 ("Train tiles", str(aug.get("train_count", "?"))),
-                ("Val tiles",   str(aug.get("valid_count", "?"))),
-                ("Test tiles",  str(aug.get("test_count",  "?"))),
+                ("Val tiles", str(aug.get("valid_count", "?"))),
+                ("Test tiles", str(aug.get("test_count", "?"))),
             ])
         except Exception:
             self._clear_summary()

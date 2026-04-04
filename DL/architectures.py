@@ -37,7 +37,6 @@ string key: ``"unet"``, ``"attention_unet"``, ``"unet_pp"``, ``"swin_unet"``,
 
 from __future__ import annotations
 
-import math
 from typing import List, Optional, Tuple
 
 import torch
@@ -73,7 +72,11 @@ UNSUPPORTED_SIZE_WARNING: str = (
 class DoubleConv(nn.Module):
     """Two consecutive (Conv 3×3 → BN → ReLU) blocks."""
 
-    def __init__(self, in_ch: int, out_ch: int, mid_ch: Optional[int] = None) -> None:
+    def __init__(
+            self,
+            in_ch: int,
+            out_ch: int,
+            mid_ch: Optional[int] = None) -> None:
         super().__init__()
         mid_ch = mid_ch or out_ch
         self.block = nn.Sequential(
@@ -100,7 +103,10 @@ def _up_cat(deep: torch.Tensor, *skips: torch.Tensor) -> torch.Tensor:
     Returns:
         Concatenated tensor ``[*skips, deep_upsampled]``.
     """
-    deep = F.interpolate(deep, size=skips[0].shape[2:], mode="bilinear", align_corners=True)
+    deep = F.interpolate(deep,
+                         size=skips[0].shape[2:],
+                         mode="bilinear",
+                         align_corners=True)
     return torch.cat([*skips, deep], dim=1)
 
 
@@ -140,16 +146,18 @@ class UNet(nn.Module):
         c = base_channels
         # Encoder
         self.enc1 = DoubleConv(in_channels, c)
-        self.enc2 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c,      c * 2))
-        self.enc3 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 2,  c * 4))
-        self.enc4 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 4,  c * 8))
+        self.enc2 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c, c * 2))
+        self.enc3 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 2, c * 4))
+        self.enc4 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 4, c * 8))
         # Bottleneck
-        self.bottleneck = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 8, c * 16))
+        self.bottleneck = nn.Sequential(
+            nn.MaxPool2d(2), DoubleConv(
+                c * 8, c * 16))
         # Decoder
         self.dec4 = DoubleConv(c * 16 + c * 8, c * 8)
-        self.dec3 = DoubleConv(c * 8  + c * 4, c * 4)
-        self.dec2 = DoubleConv(c * 4  + c * 2, c * 2)
-        self.dec1 = DoubleConv(c * 2  + c,     c)
+        self.dec3 = DoubleConv(c * 8 + c * 4, c * 4)
+        self.dec2 = DoubleConv(c * 4 + c * 2, c * 2)
+        self.dec1 = DoubleConv(c * 2 + c, c)
         # Segmentation head (raw logit)
         self.head = nn.Conv2d(c, 1, kernel_size=1)
 
@@ -158,9 +166,9 @@ class UNet(nn.Module):
         s2 = self.enc2(s1)
         s3 = self.enc3(s2)
         s4 = self.enc4(s3)
-        b  = self.bottleneck(s4)
+        b = self.bottleneck(s4)
 
-        d4 = self.dec4(_up_cat(b,  s4))
+        d4 = self.dec4(_up_cat(b, s4))
         d3 = self.dec3(_up_cat(d4, s3))
         d2 = self.dec2(_up_cat(d3, s2))
         d1 = self.dec1(_up_cat(d2, s1))
@@ -186,13 +194,21 @@ class _AttentionGate(nn.Module):
 
     def __init__(self, g_ch: int, x_ch: int, inter_ch: int) -> None:
         super().__init__()
-        self.Wg   = nn.Conv2d(g_ch,     inter_ch, kernel_size=1, bias=False)
-        self.Wx   = nn.Conv2d(x_ch,     inter_ch, kernel_size=1, bias=False)
-        self.psi  = nn.Conv2d(inter_ch, 1,        kernel_size=1, bias=False)
+        self.Wg = nn.Conv2d(g_ch, inter_ch, kernel_size=1, bias=False)
+        self.Wx = nn.Conv2d(x_ch, inter_ch, kernel_size=1, bias=False)
+        self.psi = nn.Conv2d(inter_ch, 1, kernel_size=1, bias=False)
 
     def forward(self, g: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
-        g_up = F.interpolate(g, size=x.shape[2:], mode="bilinear", align_corners=True)
-        attn = torch.sigmoid(self.psi(F.relu(self.Wg(g_up) + self.Wx(x), inplace=True)))
+        g_up = F.interpolate(g,
+                             size=x.shape[2:],
+                             mode="bilinear",
+                             align_corners=True)
+        attn = torch.sigmoid(
+            self.psi(
+                F.relu(
+                    self.Wg(g_up) +
+                    self.Wx(x),
+                    inplace=True)))
         return x * attn
 
 
@@ -226,21 +242,24 @@ class AttentionUNet(nn.Module):
         c = base_channels
         # Encoder
         self.enc1 = DoubleConv(in_channels, c)
-        self.enc2 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c,     c * 2))
+        self.enc2 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c, c * 2))
         self.enc3 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 2, c * 4))
         self.enc4 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 4, c * 8))
         # Bottleneck
-        self.bottleneck = nn.Sequential(nn.MaxPool2d(2), DoubleConv(c * 8, c * 16))
-        # Attention gates (gating signal = decoder feature, skip = encoder feature)
-        self.attn4 = _AttentionGate(c * 16, c * 8,  c * 8)
-        self.attn3 = _AttentionGate(c * 8,  c * 4,  c * 4)
-        self.attn2 = _AttentionGate(c * 4,  c * 2,  c * 2)
-        self.attn1 = _AttentionGate(c * 2,  c,      c)
+        self.bottleneck = nn.Sequential(
+            nn.MaxPool2d(2), DoubleConv(
+                c * 8, c * 16))
+        # Attention gates (gating signal = decoder feature, skip = encoder
+        # feature)
+        self.attn4 = _AttentionGate(c * 16, c * 8, c * 8)
+        self.attn3 = _AttentionGate(c * 8, c * 4, c * 4)
+        self.attn2 = _AttentionGate(c * 4, c * 2, c * 2)
+        self.attn1 = _AttentionGate(c * 2, c, c)
         # Decoder
         self.dec4 = DoubleConv(c * 16 + c * 8, c * 8)
-        self.dec3 = DoubleConv(c * 8  + c * 4, c * 4)
-        self.dec2 = DoubleConv(c * 4  + c * 2, c * 2)
-        self.dec1 = DoubleConv(c * 2  + c,     c)
+        self.dec3 = DoubleConv(c * 8 + c * 4, c * 4)
+        self.dec2 = DoubleConv(c * 4 + c * 2, c * 2)
+        self.dec1 = DoubleConv(c * 2 + c, c)
         # Segmentation head
         self.head = nn.Conv2d(c, 1, kernel_size=1)
 
@@ -249,10 +268,10 @@ class AttentionUNet(nn.Module):
         s2 = self.enc2(s1)
         s3 = self.enc3(s2)
         s4 = self.enc4(s3)
-        b  = self.bottleneck(s4)
+        b = self.bottleneck(s4)
 
-        a4 = self.attn4(b,  s4)
-        d4 = self.dec4(_up_cat(b,  a4))
+        a4 = self.attn4(b, s4)
+        d4 = self.dec4(_up_cat(b, a4))
         a3 = self.attn3(d4, s3)
         d3 = self.dec3(_up_cat(d4, a3))
         a2 = self.attn2(d3, s2)
@@ -305,45 +324,62 @@ class UNetPP(nn.Module):
         assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
 
         self.deep_supervision = deep_supervision
-        nb = [base_channels * (2 ** i) for i in range(5)]  # [64,128,256,512,1024]
+        nb = [base_channels * (2 ** i)
+              for i in range(5)]  # [64,128,256,512,1024]
 
         # ── Encoder column (j = 0) ──────────────────────────────────────────
         self.enc = nn.ModuleList([
-            DoubleConv(in_channels, nb[0]),                              # X^{0,0}
-            nn.Sequential(nn.MaxPool2d(2), DoubleConv(nb[0], nb[1])),   # X^{1,0}
-            nn.Sequential(nn.MaxPool2d(2), DoubleConv(nb[1], nb[2])),   # X^{2,0}
-            nn.Sequential(nn.MaxPool2d(2), DoubleConv(nb[2], nb[3])),   # X^{3,0}
-            nn.Sequential(nn.MaxPool2d(2), DoubleConv(nb[3], nb[4])),   # X^{4,0}
+            # X^{0,0}
+            DoubleConv(in_channels, nb[0]),
+            nn.Sequential(
+                nn.MaxPool2d(2), DoubleConv(
+                    nb[0], nb[1])),   # X^{1,0}
+            nn.Sequential(
+                nn.MaxPool2d(2), DoubleConv(
+                    nb[1], nb[2])),   # X^{2,0}
+            nn.Sequential(
+                nn.MaxPool2d(2), DoubleConv(
+                    nb[2], nb[3])),   # X^{3,0}
+            nn.Sequential(
+                nn.MaxPool2d(2), DoubleConv(
+                    nb[3], nb[4])),   # X^{4,0}
         ])
 
         # ── Dense decoder nodes ─────────────────────────────────────────────
         # Column j = 1
-        self.node_0_1 = DoubleConv(nb[1] + nb[0],          nb[0])  # up(X^{1,0}) + X^{0,0}
-        self.node_1_1 = DoubleConv(nb[2] + nb[1],          nb[1])  # up(X^{2,0}) + X^{1,0}
-        self.node_2_1 = DoubleConv(nb[3] + nb[2],          nb[2])
-        self.node_3_1 = DoubleConv(nb[4] + nb[3],          nb[3])
+        self.node_0_1 = DoubleConv(
+            nb[1] + nb[0], nb[0])  # up(X^{1,0}) + X^{0,0}
+        self.node_1_1 = DoubleConv(
+            nb[2] + nb[1], nb[1])  # up(X^{2,0}) + X^{1,0}
+        self.node_2_1 = DoubleConv(nb[3] + nb[2], nb[2])
+        self.node_3_1 = DoubleConv(nb[4] + nb[3], nb[3])
 
         # Column j = 2
-        self.node_0_2 = DoubleConv(nb[1] + nb[0] * 2,     nb[0])  # up(X^{1,1}) + X^{0,0} + X^{0,1}
-        self.node_1_2 = DoubleConv(nb[2] + nb[1] * 2,     nb[1])
-        self.node_2_2 = DoubleConv(nb[3] + nb[2] * 2,     nb[2])
+        # up(X^{1,1}) + X^{0,0} + X^{0,1}
+        self.node_0_2 = DoubleConv(nb[1] + nb[0] * 2, nb[0])
+        self.node_1_2 = DoubleConv(nb[2] + nb[1] * 2, nb[1])
+        self.node_2_2 = DoubleConv(nb[3] + nb[2] * 2, nb[2])
 
         # Column j = 3
-        self.node_0_3 = DoubleConv(nb[1] + nb[0] * 3,     nb[0])
-        self.node_1_3 = DoubleConv(nb[2] + nb[1] * 3,     nb[1])
+        self.node_0_3 = DoubleConv(nb[1] + nb[0] * 3, nb[0])
+        self.node_1_3 = DoubleConv(nb[2] + nb[1] * 3, nb[1])
 
         # Column j = 4 (final)
-        self.node_0_4 = DoubleConv(nb[1] + nb[0] * 4,     nb[0])
+        self.node_0_4 = DoubleConv(nb[1] + nb[0] * 4, nb[0])
 
         # ── Segmentation heads ──────────────────────────────────────────────
         if self.deep_supervision:
-            self.heads = nn.ModuleList([nn.Conv2d(nb[0], 1, 1) for _ in range(4)])
+            self.heads = nn.ModuleList(
+                [nn.Conv2d(nb[0], 1, 1) for _ in range(4)])
         else:
             self.head = nn.Conv2d(nb[0], 1, 1)
 
     @staticmethod
     def _up_cat(deep: torch.Tensor, *skips: torch.Tensor) -> torch.Tensor:
-        deep = F.interpolate(deep, size=skips[0].shape[2:], mode="bilinear", align_corners=True)
+        deep = F.interpolate(deep,
+                             size=skips[0].shape[2:],
+                             mode="bilinear",
+                             align_corners=True)
         return torch.cat([*skips, deep], dim=1)
 
     def forward(self, x: torch.Tensor):
@@ -397,7 +433,11 @@ def _window_partition(x: torch.Tensor, ws: int) -> torch.Tensor:
     return x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, ws, ws, C)
 
 
-def _window_reverse(windows: torch.Tensor, ws: int, H: int, W: int) -> torch.Tensor:
+def _window_reverse(
+        windows: torch.Tensor,
+        ws: int,
+        H: int,
+        W: int) -> torch.Tensor:
     """Invert ``_window_partition``. Returns (B, H, W, C)."""
     B = windows.shape[0] // ((H // ws) * (W // ws))
     x = windows.view(B, H // ws, W // ws, ws, ws, -1)
@@ -417,8 +457,8 @@ class _WindowAttention(nn.Module):
     ) -> None:
         super().__init__()
         self.window_size = window_size
-        self.num_heads   = num_heads
-        self.scale       = (dim // num_heads) ** -0.5
+        self.num_heads = num_heads
+        self.scale = (dim // num_heads) ** -0.5
 
         # Relative positional bias table: (2*Ws-1)^2 × num_heads
         self.rel_pos_bias_table = nn.Parameter(
@@ -426,19 +466,24 @@ class _WindowAttention(nn.Module):
         )
         nn.init.trunc_normal_(self.rel_pos_bias_table, std=0.02)
 
-        coords   = torch.stack(
-            torch.meshgrid(torch.arange(window_size), torch.arange(window_size), indexing="ij")
-        )  # (2, Ws, Ws)
-        coords_f = coords.flatten(1)                                    # (2, Ws²)
-        rel      = coords_f[:, :, None] - coords_f[:, None, :]          # (2, Ws², Ws²)
-        rel      = rel.permute(1, 2, 0).contiguous()
+        coords = torch.stack(
+            torch.meshgrid(
+                torch.arange(window_size),
+                torch.arange(window_size),
+                indexing="ij"))  # (2, Ws, Ws)
+        # (2, Ws²)
+        coords_f = coords.flatten(1)
+        rel = coords_f[:, :, None] - \
+            coords_f[:, None, :]          # (2, Ws², Ws²)
+        rel = rel.permute(1, 2, 0).contiguous()
         rel[:, :, 0] += window_size - 1
         rel[:, :, 1] += window_size - 1
         rel[:, :, 0] *= 2 * window_size - 1
-        self.register_buffer("rel_pos_idx", rel.sum(-1))                # (Ws², Ws²)
+        self.register_buffer("rel_pos_idx",
+                             rel.sum(-1))                # (Ws², Ws²)
 
-        self.qkv       = nn.Linear(dim, dim * 3, bias=True)
-        self.proj      = nn.Linear(dim, dim)
+        self.qkv = nn.Linear(dim, dim * 3, bias=True)
+        self.proj = nn.Linear(dim, dim)
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj_drop = nn.Dropout(proj_drop)
 
@@ -461,13 +506,13 @@ class _WindowAttention(nn.Module):
         attn = attn + rp_bias.unsqueeze(0)
 
         if mask is not None:
-            nW   = mask.shape[0]
+            nW = mask.shape[0]
             attn = attn.view(B_ // nW, nW, self.num_heads, N, N)
             attn = attn + mask.unsqueeze(1).unsqueeze(0)
             attn = attn.view(-1, self.num_heads, N, N)
 
         attn = self.attn_drop(torch.softmax(attn, dim=-1))
-        x    = (attn @ v).transpose(1, 2).reshape(B_, N, C)
+        x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
         return self.proj_drop(self.proj(x))
 
 
@@ -490,14 +535,15 @@ class _SwinBlock(nn.Module):
         # Clamp window size so it never exceeds the feature-map dimensions.
         self.window_size = min(window_size, H, W)
         # If the entire feature map fits in one window, shifting has no effect.
-        self.shift_size  = 0 if (self.window_size >= H and self.window_size >= W) else shift_size
+        self.shift_size = 0 if (
+            self.window_size >= H and self.window_size >= W) else shift_size
 
         self.norm1 = nn.LayerNorm(dim)
-        self.attn  = _WindowAttention(dim, self.window_size, num_heads,
-                                      attn_drop=attn_drop, proj_drop=drop)
+        self.attn = _WindowAttention(dim, self.window_size, num_heads,
+                                     attn_drop=attn_drop, proj_drop=drop)
         self.norm2 = nn.LayerNorm(dim)
         mlp_hidden = int(dim * mlp_ratio)
-        self.mlp   = nn.Sequential(
+        self.mlp = nn.Sequential(
             nn.Linear(dim, mlp_hidden),
             nn.GELU(),
             nn.Dropout(drop),
@@ -505,7 +551,8 @@ class _SwinBlock(nn.Module):
             nn.Dropout(drop),
         )
 
-        # Pre-compute SW-MSA attention mask (stored as a buffer, not a parameter).
+        # Pre-compute SW-MSA attention mask (stored as a buffer, not a
+        # parameter).
         if self.shift_size > 0:
             img_mask = torch.zeros(1, H, W, 1)
             for h_sl in (slice(0, -self.window_size),
@@ -515,7 +562,8 @@ class _SwinBlock(nn.Module):
                              slice(-self.window_size, -self.shift_size),
                              slice(-self.shift_size, None)):
                     img_mask[:, h_sl, w_sl, :] += 1  # unique region id
-                    img_mask[:, h_sl, w_sl, :] *= 1  # will be overwritten below
+                    # will be overwritten below
+                    img_mask[:, h_sl, w_sl, :] *= 1
 
             # Assign unique integer per region
             img_mask.zero_()
@@ -529,12 +577,12 @@ class _SwinBlock(nn.Module):
                     img_mask[:, h_sl, w_sl, :] = cnt
                     cnt += 1
 
-            mask_windows = _window_partition(img_mask, self.window_size)    # (nW,Ws,Ws,1)
+            mask_windows = _window_partition(
+                img_mask, self.window_size)    # (nW,Ws,Ws,1)
             mask_windows = mask_windows.view(-1, self.window_size ** 2)
-            attn_mask    = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
-            attn_mask    = attn_mask.masked_fill(attn_mask != 0, -100.0).masked_fill(
-                attn_mask == 0, 0.0
-            )
+            attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
+            attn_mask = attn_mask.masked_fill(
+                attn_mask != 0, -100.0).masked_fill(attn_mask == 0, 0.0)
         else:
             attn_mask = None
 
@@ -550,7 +598,8 @@ class _SwinBlock(nn.Module):
         x = self.norm1(x).view(B, H, W, C)
 
         if self.shift_size > 0:
-            x = torch.roll(x, shifts=(-self.shift_size, -self.shift_size), dims=(1, 2))
+            x = torch.roll(x, shifts=(-self.shift_size, -
+                           self.shift_size), dims=(1, 2))
 
         x_win = _window_partition(x, self.window_size).view(
             -1, self.window_size ** 2, C
@@ -562,7 +611,10 @@ class _SwinBlock(nn.Module):
         )
 
         if self.shift_size > 0:
-            x = torch.roll(x, shifts=(self.shift_size, self.shift_size), dims=(1, 2))
+            x = torch.roll(
+                x, shifts=(
+                    self.shift_size, self.shift_size), dims=(
+                    1, 2))
 
         x = shortcut + x.view(B, H * W, C)
         x = x + self.mlp(self.norm2(x))
@@ -572,16 +624,24 @@ class _SwinBlock(nn.Module):
 class _PatchEmbed(nn.Module):
     """Split image into non-overlapping patches and project to *embed_dim*."""
 
-    def __init__(self, in_ch: int, embed_dim: int, patch_size: int = 4) -> None:
+    def __init__(
+            self,
+            in_ch: int,
+            embed_dim: int,
+            patch_size: int = 4) -> None:
         super().__init__()
         self.patch_size = patch_size
-        self.proj = nn.Conv2d(in_ch, embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.proj = nn.Conv2d(
+            in_ch,
+            embed_dim,
+            kernel_size=patch_size,
+            stride=patch_size)
         self.norm = nn.LayerNorm(embed_dim)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
-        x    = self.proj(x)           # (B, C, H/ps, W/ps)
+        x = self.proj(x)           # (B, C, H/ps, W/ps)
         Hp, Wp = x.shape[2], x.shape[3]
-        x    = x.flatten(2).transpose(1, 2)   # (B, Hp*Wp, C)
+        x = x.flatten(2).transpose(1, 2)   # (B, Hp*Wp, C)
         return self.norm(x), Hp, Wp
 
 
@@ -591,13 +651,14 @@ class _PatchMerging(nn.Module):
     def __init__(self, dim: int, out_dim: Optional[int] = None) -> None:
         super().__init__()
         out_dim = out_dim or dim * 2
-        self.norm      = nn.LayerNorm(4 * dim)
+        self.norm = nn.LayerNorm(4 * dim)
         self.reduction = nn.Linear(4 * dim, out_dim, bias=False)
 
-    def forward(self, x: torch.Tensor, H: int, W: int) -> Tuple[torch.Tensor, int, int]:
+    def forward(self, x: torch.Tensor, H: int,
+                W: int) -> Tuple[torch.Tensor, int, int]:
         B, _L, C = x.shape
-        x  = x.view(B, H, W, C)
-        x  = torch.cat(
+        x = x.view(B, H, W, C)
+        x = torch.cat(
             [x[:, 0::2, 0::2, :], x[:, 1::2, 0::2, :],
              x[:, 0::2, 1::2, :], x[:, 1::2, 1::2, :]],
             dim=-1,
@@ -610,15 +671,18 @@ class _PatchExpanding(nn.Module):
 
     def __init__(self, dim: int, out_dim: Optional[int] = None) -> None:
         super().__init__()
-        out_dim     = out_dim or dim // 2
-        self._out   = out_dim
+        out_dim = out_dim or dim // 2
+        self._out = out_dim
         self.expand = nn.Linear(dim, 4 * out_dim, bias=False)
-        self.norm   = nn.LayerNorm(out_dim)
+        self.norm = nn.LayerNorm(out_dim)
 
-    def forward(self, x: torch.Tensor, H: int, W: int) -> Tuple[torch.Tensor, int, int]:
+    def forward(self, x: torch.Tensor, H: int,
+                W: int) -> Tuple[torch.Tensor, int, int]:
         B, _L, _C = x.shape
         x = self.expand(x).view(B, H, W, 2, 2, self._out)
-        x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H * 2 * W * 2, self._out)
+        x = x.permute(
+            0, 1, 3, 2, 4, 5).contiguous().view(
+            B, H * 2 * W * 2, self._out)
         return self.norm(x), H * 2, W * 2
 
 
@@ -697,17 +761,18 @@ class SwinUNet(nn.Module):
         )
         assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
 
-        depths    = depths    or [2, 2, 6, 2]
+        depths = depths or [2, 2, 6, 2]
         num_heads = num_heads or [3, 6, 12, 24]
         assert len(depths) == len(num_heads) == 4, "Exactly 4 stages required."
 
         self.patch_size = patch_size
-        self.embed_dim  = embed_dim
+        self.embed_dim = embed_dim
 
         patch_res = img_size // patch_size          # token grid side length
-        # Encoder stage resolutions: patch_res, patch_res/2, patch_res/4, patch_res/8
+        # Encoder stage resolutions: patch_res, patch_res/2, patch_res/4,
+        # patch_res/8
         enc_res = [(patch_res >> i, patch_res >> i) for i in range(4)]
-        dims    = [embed_dim * (2 ** i) for i in range(4)]   # [96, 192, 384, 768]
+        dims = [embed_dim * (2 ** i) for i in range(4)]   # [96, 192, 384, 768]
 
         # ── Patch embedding ─────────────────────────────────────────────────
         self.patch_embed = _PatchEmbed(in_channels, embed_dim, patch_size)
@@ -723,9 +788,9 @@ class SwinUNet(nn.Module):
 
         # ── Decoder ─────────────────────────────────────────────────────────
         dec_dims = list(reversed(dims))        # [768, 384, 192, 96]
-        dec_res  = list(reversed(enc_res))
-        dec_dep  = list(reversed(depths))
-        dec_hds  = list(reversed(num_heads))
+        dec_res = list(reversed(enc_res))
+        dec_dep = list(reversed(depths))
+        dec_hds = list(reversed(num_heads))
 
         # Upsample: dec_dims[i] → dec_dims[i]//2  (= dec_dims[i+1])
         self.patch_expanding = nn.ModuleList([
@@ -742,10 +807,12 @@ class SwinUNet(nn.Module):
         ])
 
         # ── Final upsample × patch_size → full resolution ───────────────────
-        # embed_dim tokens → (patch_size)² × (embed_dim//4) via linear + pixel-shuffle
-        self.final_norm   = nn.LayerNorm(embed_dim)
-        self.final_expand = nn.Linear(embed_dim, patch_size ** 2 * (embed_dim // 4), bias=False)
-        self.head         = nn.Conv2d(embed_dim // 4, 1, kernel_size=1)
+        # embed_dim tokens → (patch_size)² × (embed_dim//4) via linear +
+        # pixel-shuffle
+        self.final_norm = nn.LayerNorm(embed_dim)
+        self.final_expand = nn.Linear(
+            embed_dim, patch_size ** 2 * (embed_dim // 4), bias=False)
+        self.head = nn.Conv2d(embed_dim // 4, 1, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, _C, H, W = x.shape
@@ -764,20 +831,20 @@ class SwinUNet(nn.Module):
 
         # Decoder (skip[2-i] reverses depth order)
         for i in range(3):
-            x, Hc, Wc  = self.patch_expanding[i](x, Hc, Wc)
-            sx, sH, sW  = skips[2 - i]
-            x           = self.concat_proj[i](torch.cat([x, sx], dim=-1))
-            x           = self.dec_stages[i](x)
+            x, Hc, Wc = self.patch_expanding[i](x, Hc, Wc)
+            sx, sH, sW = skips[2 - i]
+            x = self.concat_proj[i](torch.cat([x, sx], dim=-1))
+            x = self.dec_stages[i](x)
 
         # Final upsample ×patch_size via pixel-shuffle
-        x    = self.final_expand(self.final_norm(x))    # (B, Hp*Wp, ps²*(C//4))
-        ps   = self.patch_size
-        och  = self.embed_dim // 4
-        x    = (
+        x = self.final_expand(self.final_norm(x))    # (B, Hp*Wp, ps²*(C//4))
+        ps = self.patch_size
+        och = self.embed_dim // 4
+        x = (
             x.view(B, Hp, Wp, ps, ps, och)
-             .permute(0, 5, 1, 3, 2, 4)
-             .contiguous()
-             .view(B, och, H, W)
+            .permute(0, 5, 1, 3, 2, 4)
+            .contiguous()
+            .view(B, och, H, W)
         )
         return self.head(x)
 
@@ -793,7 +860,7 @@ class _ResBlock(nn.Module):
     def __init__(self, in_ch: int, out_ch: int, stride: int = 1) -> None:
         super().__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(in_ch,  out_ch, 3, stride=stride, padding=1, bias=False),
+            nn.Conv2d(in_ch, out_ch, 3, stride=stride, padding=1, bias=False),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False),
@@ -873,14 +940,35 @@ class LinkNet(nn.Module):
             nn.ReLU(inplace=True),
         )
         # Encoder
-        self.enc1 = nn.Sequential(_ResBlock(c,     c    ),               _ResBlock(c,     c    ))
-        self.enc2 = nn.Sequential(_ResBlock(c,     c * 2, stride=2),     _ResBlock(c * 2, c * 2))
-        self.enc3 = nn.Sequential(_ResBlock(c * 2, c * 4, stride=2),     _ResBlock(c * 4, c * 4))
-        self.enc4 = nn.Sequential(_ResBlock(c * 4, c * 8, stride=2),     _ResBlock(c * 8, c * 8))
+        self.enc1 = nn.Sequential(_ResBlock(c, c), _ResBlock(c, c))
+        self.enc2 = nn.Sequential(
+            _ResBlock(
+                c,
+                c * 2,
+                stride=2),
+            _ResBlock(
+                c * 2,
+                c * 2))
+        self.enc3 = nn.Sequential(
+            _ResBlock(
+                c * 2,
+                c * 4,
+                stride=2),
+            _ResBlock(
+                c * 4,
+                c * 4))
+        self.enc4 = nn.Sequential(
+            _ResBlock(
+                c * 4,
+                c * 8,
+                stride=2),
+            _ResBlock(
+                c * 8,
+                c * 8))
         # Decoder (element-wise skip adds — no channel concatenation)
         self.dec4 = _LinkDecBlock(c * 8, c * 4)
         self.dec3 = _LinkDecBlock(c * 4, c * 2)
-        self.dec2 = _LinkDecBlock(c * 2, c    )
+        self.dec2 = _LinkDecBlock(c * 2, c)
         self.dec1 = nn.Sequential(
             nn.Conv2d(c, c, 3, padding=1, bias=False),
             nn.BatchNorm2d(c),
@@ -890,15 +978,15 @@ class LinkNet(nn.Module):
         self.head = nn.Conv2d(c, 1, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x  = self.init_conv(x)
+        x = self.init_conv(x)
         s1 = self.enc1(x)
         s2 = self.enc2(s1)
         s3 = self.enc3(s2)
         s4 = self.enc4(s3)
 
         d = self.dec4(s4) + s3   # element-wise add
-        d = self.dec3(d)  + s2
-        d = self.dec2(d)  + s1
+        d = self.dec3(d) + s2
+        d = self.dec2(d) + s1
         d = self.dec1(d)
         return self.head(d)
 
@@ -910,10 +998,10 @@ class LinkNet(nn.Module):
 # ASPP dilation rates are scaled down for small tiles so the receptive field
 # stays within the feature-map boundaries.
 _ASPP_RATES: dict = {
-    64:   (2,  3,  4),
-    128:  (3,  6,  9),
-    256:  (6, 12, 18),
-    512:  (6, 12, 18),
+    64: (2, 3, 4),
+    128: (3, 6, 9),
+    256: (6, 12, 18),
+    512: (6, 12, 18),
     1024: (6, 12, 18),
 }
 
@@ -921,7 +1009,8 @@ _ASPP_RATES: dict = {
 class _ASPP(nn.Module):
     """Atrous Spatial Pyramid Pooling with global average-pooling branch."""
 
-    def __init__(self, in_ch: int, out_ch: int, rates: Tuple[int, ...]) -> None:
+    def __init__(self, in_ch: int, out_ch: int,
+                 rates: Tuple[int, ...]) -> None:
         super().__init__()
         # 1×1 conv + one dilated 3×3 per rate
         self.branches = nn.ModuleList([
@@ -957,7 +1046,13 @@ class _ASPP(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         H, W = x.shape[2:]
         parts = [b(x) for b in self.branches]
-        gap   = F.interpolate(self.gap(x), size=(H, W), mode="bilinear", align_corners=True)
+        gap = F.interpolate(
+            self.gap(x),
+            size=(
+                H,
+                W),
+            mode="bilinear",
+            align_corners=True)
         parts.append(gap)
         return self.proj(torch.cat(parts, dim=1))
 
@@ -1005,18 +1100,18 @@ class DeepLabV3Plus(nn.Module):
             nn.ReLU(inplace=True),
         )
         self.layer1 = nn.Sequential(                                          # → /2  low-level feats
-            nn.Conv2d(c,     c,     3, stride=2, padding=1, bias=False),
+            nn.Conv2d(c, c, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(c),
             nn.ReLU(inplace=True),
-            nn.Conv2d(c,     c,     3,           padding=1, bias=False),
+            nn.Conv2d(c, c, 3, padding=1, bias=False),
             nn.BatchNorm2d(c),
             nn.ReLU(inplace=True),
         )
         self.layer2 = nn.Sequential(                                          # → /4
-            nn.Conv2d(c,     c * 2, 3, stride=2, padding=1, bias=False),
+            nn.Conv2d(c, c * 2, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(c * 2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(c * 2, c * 2, 3,           padding=1, bias=False),
+            nn.Conv2d(c * 2, c * 2, 3, padding=1, bias=False),
             nn.BatchNorm2d(c * 2),
             nn.ReLU(inplace=True),
         )
@@ -1024,12 +1119,15 @@ class DeepLabV3Plus(nn.Module):
             nn.Conv2d(c * 2, c * 4, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(c * 4),
             nn.ReLU(inplace=True),
-            nn.Conv2d(c * 4, c * 4, 3,           padding=1, bias=False),
+            nn.Conv2d(c * 4, c * 4, 3, padding=1, bias=False),
             nn.BatchNorm2d(c * 4),
             nn.ReLU(inplace=True),
         )
 
-        self.aspp = _ASPP(c * 4, out_ch=aspp_out_ch, rates=_ASPP_RATES[img_size])
+        self.aspp = _ASPP(
+            c * 4,
+            out_ch=aspp_out_ch,
+            rates=_ASPP_RATES[img_size])
 
         # Project low-level features to 48 ch (following the paper)
         self.low_proj = nn.Sequential(
@@ -1047,14 +1145,20 @@ class DeepLabV3Plus(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         low = self.layer1(self.layer0(x))      # /2 — low-level features
-        h   = self.layer3(self.layer2(low))    # /8 — high-level features
+        h = self.layer3(self.layer2(low))    # /8 — high-level features
 
         aspp_out = self.aspp(h)
-        aspp_up  = F.interpolate(aspp_out, size=low.shape[2:], mode="bilinear", align_corners=True)
+        aspp_up = F.interpolate(aspp_out,
+                                size=low.shape[2:],
+                                mode="bilinear",
+                                align_corners=True)
 
         fused = torch.cat([aspp_up, self.low_proj(low)], dim=1)
-        out   = self.decoder(fused)
-        out   = F.interpolate(out, size=x.shape[2:], mode="bilinear", align_corners=True)
+        out = self.decoder(fused)
+        out = F.interpolate(out,
+                            size=x.shape[2:],
+                            mode="bilinear",
+                            align_corners=True)
         return self.head(out)
 
 
@@ -1066,7 +1170,12 @@ class DeepLabV3Plus(nn.Module):
 class _OverlapPatchEmbed(nn.Module):
     """Overlapping patch embedding via strided convolution (preserves local context)."""
 
-    def __init__(self, in_ch: int, embed_dim: int, patch_size: int, stride: int) -> None:
+    def __init__(
+            self,
+            in_ch: int,
+            embed_dim: int,
+            patch_size: int,
+            stride: int) -> None:
         super().__init__()
         self.proj = nn.Conv2d(
             in_ch, embed_dim, patch_size,
@@ -1075,9 +1184,9 @@ class _OverlapPatchEmbed(nn.Module):
         self.norm = nn.LayerNorm(embed_dim)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
-        x      = self.proj(x)
-        H, W   = x.shape[2:]
-        x      = self.norm(x.flatten(2).transpose(1, 2))   # (B, H*W, C)
+        x = self.proj(x)
+        H, W = x.shape[2:]
+        x = self.norm(x.flatten(2).transpose(1, 2))   # (B, H*W, C)
         return x, H, W
 
 
@@ -1087,29 +1196,39 @@ class _EfficientSelfAttn(nn.Module):
     def __init__(self, dim: int, num_heads: int, sr_ratio: int = 1) -> None:
         super().__init__()
         self.num_heads = num_heads
-        self.scale     = (dim // num_heads) ** -0.5
-        self.q         = nn.Linear(dim, dim, bias=True)
-        self.kv        = nn.Linear(dim, dim * 2, bias=True)
-        self.proj      = nn.Linear(dim, dim)
-        self.sr_ratio  = sr_ratio
+        self.scale = (dim // num_heads) ** -0.5
+        self.q = nn.Linear(dim, dim, bias=True)
+        self.kv = nn.Linear(dim, dim * 2, bias=True)
+        self.proj = nn.Linear(dim, dim)
+        self.sr_ratio = sr_ratio
         if sr_ratio > 1:
-            self.sr      = nn.Conv2d(dim, dim, sr_ratio, stride=sr_ratio, bias=False)
+            self.sr = nn.Conv2d(
+                dim, dim, sr_ratio, stride=sr_ratio, bias=False)
             self.sr_norm = nn.LayerNorm(dim)
 
     def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         B, N, C = x.shape
-        Nh      = self.num_heads
+        Nh = self.num_heads
         q = self.q(x).reshape(B, N, Nh, C // Nh).permute(0, 2, 1, 3)
         if self.sr_ratio > 1:
-            x_ = self.sr(x.transpose(1, 2).reshape(B, C, H, W)).flatten(2).transpose(1, 2)
+            x_ = self.sr(
+                x.transpose(
+                    1,
+                    2).reshape(
+                    B,
+                    C,
+                    H,
+                    W)).flatten(2).transpose(
+                1,
+                2)
             x_ = self.sr_norm(x_)
         else:
             x_ = x
-        kv      = self.kv(x_).reshape(B, -1, 2, Nh, C // Nh).permute(2, 0, 3, 1, 4)
-        k, v    = kv.unbind(0)
-        attn    = (q @ k.transpose(-2, -1)) * self.scale
-        attn    = attn.softmax(dim=-1)
-        x       = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        kv = self.kv(x_).reshape(B, -1, 2, Nh, C // Nh).permute(2, 0, 3, 1, 4)
+        k, v = kv.unbind(0)
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         return self.proj(x)
 
 
@@ -1118,15 +1237,31 @@ class _MixFFN(nn.Module):
 
     def __init__(self, dim: int, expand: int = 4) -> None:
         super().__init__()
-        hidden   = dim * expand
+        hidden = dim * expand
         self.fc1 = nn.Linear(dim, hidden)
-        self.dw  = nn.Conv2d(hidden, hidden, 3, padding=1, groups=hidden, bias=False)
+        self.dw = nn.Conv2d(
+            hidden,
+            hidden,
+            3,
+            padding=1,
+            groups=hidden,
+            bias=False)
         self.fc2 = nn.Linear(hidden, dim)
 
     def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
-        x      = self.fc1(x)
+        x = self.fc1(x)
         B, N, C = x.shape
-        x      = F.gelu(self.dw(x.transpose(1, 2).reshape(B, C, H, W)).flatten(2).transpose(1, 2))
+        x = F.gelu(
+            self.dw(
+                x.transpose(
+                    1,
+                    2).reshape(
+                    B,
+                    C,
+                    H,
+                    W)).flatten(2).transpose(
+                1,
+                2))
         return self.fc2(x)
 
 
@@ -1136,9 +1271,9 @@ class _MiTBlock(nn.Module):
     def __init__(self, dim: int, num_heads: int, sr_ratio: int = 1) -> None:
         super().__init__()
         self.norm1 = nn.LayerNorm(dim)
-        self.attn  = _EfficientSelfAttn(dim, num_heads, sr_ratio)
+        self.attn = _EfficientSelfAttn(dim, num_heads, sr_ratio)
         self.norm2 = nn.LayerNorm(dim)
-        self.ffn   = _MixFFN(dim)
+        self.ffn = _MixFFN(dim)
 
     def forward(self, x: torch.Tensor, H: int, W: int) -> torch.Tensor:
         x = x + self.attn(self.norm1(x), H, W)
@@ -1160,8 +1295,9 @@ class _MiTStage(nn.Module):
         sr_ratio: int,
     ) -> None:
         super().__init__()
-        self.patch_embed = _OverlapPatchEmbed(in_ch, embed_dim, patch_size, stride)
-        self.blocks      = nn.ModuleList([
+        self.patch_embed = _OverlapPatchEmbed(
+            in_ch, embed_dim, patch_size, stride)
+        self.blocks = nn.ModuleList([
             _MiTBlock(embed_dim, num_heads, sr_ratio) for _ in range(depth)
         ])
         self.norm = nn.LayerNorm(embed_dim)
@@ -1170,7 +1306,7 @@ class _MiTStage(nn.Module):
         x, H, W = self.patch_embed(x)
         for blk in self.blocks:
             x = blk(x, H, W)
-        x      = self.norm(x)
+        x = self.norm(x)
         B, _, C = x.shape
         return x.transpose(1, 2).reshape(B, C, H, W)
 
@@ -1216,15 +1352,15 @@ class SegFormer(nn.Module):
         )
         assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
 
-        embed_dims = embed_dims or [32,  64, 160, 256]
-        num_heads  = num_heads  or [1,    2,   5,   8]
-        depths     = depths     or [2,    2,   2,   2]
-        sr_ratios  = sr_ratios  or [8,    4,   2,   1]
+        embed_dims = embed_dims or [32, 64, 160, 256]
+        num_heads = num_heads or [1, 2, 5, 8]
+        depths = depths or [2, 2, 2, 2]
+        sr_ratios = sr_ratios or [8, 4, 2, 1]
 
         # MiT hierarchical encoder
         patch_sizes = [7, 3, 3, 3]
-        strides     = [4, 2, 2, 2]
-        in_chs      = [in_channels] + embed_dims[:3]
+        strides = [4, 2, 2, 2]
+        in_chs = [in_channels] + embed_dims[:3]
         self.stages = nn.ModuleList([
             _MiTStage(
                 in_chs[i], embed_dims[i], num_heads[i], depths[i],
@@ -1256,11 +1392,20 @@ class SegFormer(nn.Module):
         # Upsample all stages to stage-0 resolution (/4 of input), then fuse
         target = feats[0].shape[2:]
         outs = [
-            F.interpolate(self.proj[i](feats[i]), size=target, mode="bilinear", align_corners=False)
-            for i in range(4)
-        ]
+            F.interpolate(
+                self.proj[i](
+                    feats[i]),
+                size=target,
+                mode="bilinear",
+                align_corners=False) for i in range(4)]
         out = self.fuse(torch.cat(outs, dim=1))
-        out = F.interpolate(out, size=(H, W), mode="bilinear", align_corners=False)
+        out = F.interpolate(
+            out,
+            size=(
+                H,
+                W),
+            mode="bilinear",
+            align_corners=False)
         return self.head(out)
 
 
@@ -1269,13 +1414,13 @@ class SegFormer(nn.Module):
 # ===========================================================================
 
 _REGISTRY: dict = {
-    "unet":           UNet,
+    "unet": UNet,
     "attention_unet": AttentionUNet,
-    "unet_pp":        UNetPP,
-    "swin_unet":      SwinUNet,
-    "linknet":        LinkNet,
-    "deeplabv3plus":  DeepLabV3Plus,
-    "segformer":      SegFormer,
+    "unet_pp": UNetPP,
+    "swin_unet": SwinUNet,
+    "linknet": LinkNet,
+    "deeplabv3plus": DeepLabV3Plus,
+    "segformer": SegFormer,
 }
 
 AVAILABLE_MODELS: List[str] = list(_REGISTRY.keys())

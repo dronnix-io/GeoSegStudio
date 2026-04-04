@@ -26,7 +26,10 @@ import torch.nn.functional as F
 class BCELoss(nn.Module):
     """Binary Cross-Entropy with logits (numerically stable)."""
 
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    def forward(
+            self,
+            logits: torch.Tensor,
+            targets: torch.Tensor) -> torch.Tensor:
         return F.binary_cross_entropy_with_logits(logits, targets)
 
 
@@ -41,8 +44,11 @@ class DiceLoss(nn.Module):
         super().__init__()
         self.smooth = smooth
 
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        probs   = torch.sigmoid(logits).view(-1)
+    def forward(
+            self,
+            logits: torch.Tensor,
+            targets: torch.Tensor) -> torch.Tensor:
+        probs = torch.sigmoid(logits).view(-1)
         targets = targets.view(-1)
         intersection = (probs * targets).sum()
         return 1.0 - (2.0 * intersection + self.smooth) / (
@@ -55,11 +61,15 @@ class BCEDiceLoss(nn.Module):
 
     def __init__(self, smooth: float = 1.0):
         super().__init__()
-        self.bce  = BCELoss()
+        self.bce = BCELoss()
         self.dice = DiceLoss(smooth)
 
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        return 0.5 * self.bce(logits, targets) + 0.5 * self.dice(logits, targets)
+    def forward(
+            self,
+            logits: torch.Tensor,
+            targets: torch.Tensor) -> torch.Tensor:
+        return 0.5 * self.bce(logits, targets) + 0.5 * \
+            self.dice(logits, targets)
 
 
 # ---------------------------------------------------------------------------
@@ -67,8 +77,8 @@ class BCEDiceLoss(nn.Module):
 # ---------------------------------------------------------------------------
 
 _LOSSES = {
-    "bce":      BCELoss,
-    "dice":     DiceLoss,
+    "bce": BCELoss,
+    "dice": DiceLoss,
     "bce_dice": BCEDiceLoss,
 }
 

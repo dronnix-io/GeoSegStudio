@@ -24,10 +24,10 @@ from .expandable_groupbox import ExpandableGroupBox
 
 # Metric rows: (display label, results key)
 _METRIC_ROWS = [
-    ("IoU",            "IoU"),
-    ("F1 / Dice",      "F1 / Dice"),
-    ("Precision",      "Precision"),
-    ("Recall",         "Recall"),
+    ("IoU", "IoU"),
+    ("F1 / Dice", "F1 / Dice"),
+    ("Precision", "Precision"),
+    ("Recall", "Recall"),
     ("Pixel Accuracy", "Pixel Accuracy"),
 ]
 

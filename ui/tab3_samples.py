@@ -34,7 +34,9 @@ class EvalSamplesWidget(QWidget):
         # --- Scroll area wrapping the grid -----------------------------------
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
-        self._scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self._scroll.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Preferred)
 
         self._grid_widget = QWidget()
         self._grid_layout = QVBoxLayout(self._grid_widget)
@@ -133,7 +135,7 @@ class EvalSamplesWidget(QWidget):
 
         # Title bar
         fname = sample.get("filename", "")
-        iou   = sample.get("iou", None)
+        iou = sample.get("iou", None)
         iou_str = f"  —  IoU: {iou:.4f}" if iou is not None else ""
         title = QLabel(f"<b>{fname}</b>{iou_str}")
         title.setAlignment(Qt.AlignCenter)
@@ -145,14 +147,16 @@ class EvalSamplesWidget(QWidget):
         canvas.setMinimumHeight(220)
         axes = fig.subplots(1, 3)
 
-        image    = sample.get("image",     None)   # (C,H,W)
-        gt_mask  = sample.get("gt_mask",   None)   # (1,H,W)
+        image = sample.get("image", None)   # (C,H,W)
+        gt_mask = sample.get("gt_mask", None)   # (1,H,W)
         pred_mask = sample.get("pred_mask", None)  # (1,H,W)
 
         # --- Input image (show RGB if ≥3 bands, otherwise first band) --------
         ax = axes[0]
         if image is not None:
-            ax.imshow(_to_display(image), cmap=None if image.shape[0] >= 3 else "gray")
+            ax.imshow(
+                _to_display(image),
+                cmap=None if image.shape[0] >= 3 else "gray")
         ax.set_title("Input Image", fontsize=8)
         ax.axis("off")
 
@@ -195,7 +199,7 @@ def _to_display(image: np.ndarray) -> np.ndarray:
         rgb = image[:3].transpose(1, 2, 0)          # (H, W, 3)
     else:
         band = image[0]                              # (H, W)
-        rgb  = np.stack([band, band, band], axis=-1) # (H, W, 3)
+        rgb = np.stack([band, band, band], axis=-1)  # (H, W, 3)
 
     rgb = np.clip(rgb, 0.0, 1.0)
     return (rgb * 255).astype(np.uint8)

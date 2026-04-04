@@ -24,7 +24,7 @@ from .styles import style_icon_btn
 
 _SAVE_STRATEGIES = [
     ("Best only  (highest val IoU)", "best"),
-    ("Every N epochs",               "every_n"),
+    ("Every N epochs", "every_n"),
 ]
 
 
@@ -34,7 +34,7 @@ class CheckpointsWidget(QWidget):
 
         self.section = ExpandableGroupBox("Checkpoints")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # ── Save ─────────────────────────────────────────────────────────────
 
@@ -47,14 +47,16 @@ class CheckpointsWidget(QWidget):
         dir_row.setSpacing(4)
 
         self.output_dir_edit = QLineEdit()
-        self.output_dir_edit.setPlaceholderText("Folder where the .pth file will be saved …")
+        self.output_dir_edit.setPlaceholderText(
+            "Folder where the .pth file will be saved …")
         self.output_dir_edit.setReadOnly(True)
         dir_row.addWidget(self.output_dir_edit)
 
         self.output_dir_btn = QPushButton("…")
         self.output_dir_btn.setFixedWidth(30)
         style_icon_btn(self.output_dir_btn)
-        self.output_dir_btn.setToolTip("Select the folder where the trained model will be saved.")
+        self.output_dir_btn.setToolTip(
+            "Select the folder where the trained model will be saved.")
         dir_row.addWidget(self.output_dir_btn)
 
         self.form.addRow("Output Dir", dir_row)
@@ -82,7 +84,8 @@ class CheckpointsWidget(QWidget):
         self.every_n_spin = QSpinBox()
         self.every_n_spin.setRange(1, 1000)
         self.every_n_spin.setValue(10)
-        self.every_n_spin.setToolTip("Save a checkpoint every this many epochs.")
+        self.every_n_spin.setToolTip(
+            "Save a checkpoint every this many epochs.")
         self.every_n_spin.setVisible(False)
         self.every_n_label = QLabel("Save Every (ep.)")
         self.every_n_label.setVisible(False)
@@ -100,7 +103,8 @@ class CheckpointsWidget(QWidget):
         self.form.addRow(resume_header)
 
         # Enable checkbox
-        self.resume_check = QCheckBox("Load a checkpoint to resume or fine-tune")
+        self.resume_check = QCheckBox(
+            "Load a checkpoint to resume or fine-tune")
         self.resume_check.setChecked(False)
         self.form.addRow(self.resume_check)
 
@@ -122,7 +126,8 @@ class CheckpointsWidget(QWidget):
         self.checkpoint_btn = QPushButton("…")
         self.checkpoint_btn.setFixedWidth(30)
         style_icon_btn(self.checkpoint_btn)
-        self.checkpoint_btn.setToolTip("Select a previously saved .pth checkpoint file.")
+        self.checkpoint_btn.setToolTip(
+            "Select a previously saved .pth checkpoint file.")
         file_row.addWidget(self.checkpoint_btn)
 
         resume_layout.addRow("Checkpoint", file_row)
@@ -149,7 +154,8 @@ class CheckpointsWidget(QWidget):
 
         # ── Connections ──────────────────────────────────────────────────────
         self.output_dir_btn.clicked.connect(self._browse_output_dir)
-        self.strategy_combo.currentIndexChanged.connect(self._on_strategy_changed)
+        self.strategy_combo.currentIndexChanged.connect(
+            self._on_strategy_changed)
         self.resume_check.toggled.connect(self._on_resume_toggled)
         self.checkpoint_btn.clicked.connect(self._browse_checkpoint)
 
@@ -158,7 +164,8 @@ class CheckpointsWidget(QWidget):
     # -------------------------------------------------------------------------
 
     def _browse_output_dir(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Output Directory")
         if folder:
             self.output_dir_edit.setText(folder)
 
@@ -187,14 +194,18 @@ class CheckpointsWidget(QWidget):
         """Reads the checkpoint file and shows a summary hint."""
         try:
             import torch
-            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
+            data = torch.load(
+                path,
+                map_location="cpu",
+                weights_only=False)  # nosec B614
 
-            arch    = data.get("architecture", "unknown")
-            epoch   = data.get("epoch",        "?")
-            val_iou = data.get("val_iou",       None)
+            arch = data.get("architecture", "unknown")
+            epoch = data.get("epoch", "?")
+            val_iou = data.get("val_iou", None)
 
-            iou_str = f"  |  Val IoU: {val_iou:.4f}" if val_iou is not None else ""
-            hint    = (
+            iou_str = f"  |  Val IoU: {
+                val_iou:.4f}" if val_iou is not None else ""
+            hint = (
                 f"<span style='color:green'>"
                 f"Architecture: {arch}  |  Epoch: {epoch}{iou_str}"
                 f"</span>"
@@ -224,10 +235,10 @@ class CheckpointsWidget(QWidget):
     def get_checkpoint_config(self) -> dict:
         """Returns the checkpoint configuration as a dict."""
         config = {
-            "output_dir":    self.output_dir_edit.text().strip(),
-            "model_name":    self.model_name_edit.text().strip() or "model",
+            "output_dir": self.output_dir_edit.text().strip(),
+            "model_name": self.model_name_edit.text().strip() or "model",
             "save_strategy": self.strategy_combo.currentData(),
-            "resume_path":   None,
+            "resume_path": None,
         }
 
         if self.strategy_combo.currentData() == "every_n":

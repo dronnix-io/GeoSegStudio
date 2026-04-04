@@ -28,11 +28,11 @@ _CSV_HEADERS = ["Epoch", "Train Loss", "Val Loss", "Val IoU", "Val F1"]
 
 # Metrics table column definitions: (header label, alignment)
 _COLUMNS = [
-    ("Epoch",      Qt.AlignCenter),
+    ("Epoch", Qt.AlignCenter),
     ("Train Loss", Qt.AlignCenter),
-    ("Val Loss",   Qt.AlignCenter),
-    ("Val IoU",    Qt.AlignCenter),
-    ("Val F1",     Qt.AlignCenter),
+    ("Val Loss", Qt.AlignCenter),
+    ("Val IoU", Qt.AlignCenter),
+    ("Val F1", Qt.AlignCenter),
 ]
 
 
@@ -193,7 +193,8 @@ class RunMonitorWidget(QWidget):
             self._csv_path = None
             return
         os.makedirs(output_dir, exist_ok=True)
-        self._csv_path = os.path.join(output_dir, f"{model_name}_training_log.csv")
+        self._csv_path = os.path.join(
+            output_dir, f"{model_name}_training_log.csv")
         try:
             with open(self._csv_path, "w", newline="") as f:
                 csv.writer(f).writerow(_CSV_HEADERS)
@@ -247,9 +248,9 @@ class RunMonitorWidget(QWidget):
 
     def _highlight_best_iou(self):
         """Colours the row with the highest Val IoU light green."""
-        iou_col   = 3   # Val IoU column index
-        best_row  = -1
-        best_val  = -1.0
+        iou_col = 3   # Val IoU column index
+        best_row = -1
+        best_val = -1.0
 
         for row in range(self.table.rowCount()):
             item = self.table.item(row, iou_col)
@@ -263,7 +264,7 @@ class RunMonitorWidget(QWidget):
                     pass
 
         highlight = QColor("#d4edda")   # light green
-        default   = QColor("#ffffff")   # white
+        default = QColor("#ffffff")   # white
 
         for row in range(self.table.rowCount()):
             colour = highlight if row == best_row else default

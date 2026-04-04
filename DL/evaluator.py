@@ -55,13 +55,14 @@ from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 class EvaluationWorker(QThread):
 
-    phase_update        = pyqtSignal(str)
-    tile_done           = pyqtSignal(int, int)          # current, total
-    evaluation_finished = pyqtSignal(bool, object, str) # success, results, message
+    phase_update = pyqtSignal(str)
+    tile_done = pyqtSignal(int, int)          # current, total
+    evaluation_finished = pyqtSignal(
+        bool, object, str)  # success, results, message
 
     def __init__(self, config: dict, parent=None):
         super().__init__(parent)
-        self._config    = config
+        self._config = config
         self._cancelled = False
 
     def stop(self):
@@ -78,17 +79,20 @@ class EvaluationWorker(QThread):
     # -------------------------------------------------------------------------
 
     def _evaluate(self):
-        cfg    = self._config
+        cfg = self._config
         device = torch.device(cfg["device"])
 
         # --- Load checkpoint -------------------------------------------------
         self.phase_update.emit("Loading model from checkpoint...")
-        ckpt = torch.load(cfg["checkpoint_path"], map_location=device, weights_only=False)  # nosec B614
+        ckpt = torch.load(
+            cfg["checkpoint_path"],
+            map_location=device,
+            weights_only=False)  # nosec B614
 
         saved = ckpt.get("config", {})
         architecture = ckpt.get("architecture") or saved.get("architecture")
-        in_channels  = saved.get("in_channels")
-        img_size     = saved.get("img_size")
+        in_channels = saved.get("in_channels")
+        img_size = saved.get("img_size")
 
         if not architecture or in_channels is None or img_size is None:
             raise ValueError(
@@ -104,31 +108,32 @@ class EvaluationWorker(QThread):
 
         # --- Build dataset ---------------------------------------------------
         self.phase_update.emit("Loading dataset...")
-        aug_dir    = os.path.join(
+        aug_dir = os.path.join(
             cfg["dataset_dir"], "augmented", f"v{cfg['aug_version']}"
         )
-        split      = cfg["split"]
+        split = cfg["split"]
         images_dir = os.path.join(aug_dir, split, "images")
-        masks_dir  = os.path.join(aug_dir, split, "masks")
+        masks_dir = os.path.join(aug_dir, split, "masks")
 
         from .dataset import SegmentationDataset
         dataset = SegmentationDataset(images_dir, masks_dir)
-        total   = len(dataset)
+        total = len(dataset)
 
         # Decide sample indices: evenly spaced across the tile list
-        n_samples    = cfg.get("n_samples", 8)
-        step         = max(1, total // n_samples)
-        sample_idxs  = set(range(0, total, step))
+        n_samples = cfg.get("n_samples", 8)
+        step = max(1, total // n_samples)
+        sample_idxs = set(range(0, total, step))
 
         # --- Evaluation loop -------------------------------------------------
-        per_tile  = []
-        samples   = []
+        per_tile = []
+        samples = []
         agg_tp = agg_fp = agg_tn = agg_fn = 0.0
 
         # Set up mask output directory if requested
         mask_out_dir = None
         if cfg.get("save_masks") and cfg.get("output_dir"):
-            mask_out_dir = os.path.join(cfg["output_dir"], "predicted_masks", split)
+            mask_out_dir = os.path.join(
+                cfg["output_dir"], "predicted_masks", split)
             os.makedirs(mask_out_dir, exist_ok=True)
 
         with torch.no_grad():
@@ -143,7 +148,8 @@ class EvaluationWorker(QThread):
                     f"Evaluating {split} tiles — {i + 1} / {total}"
                 )
 
-                image, mask = dataset[i]                          # (C,H,W), (1,H,W)
+                # (C,H,W), (1,H,W)
+                image, mask = dataset[i]
                 logits = model(image.unsqueeze(0).to(device))
                 if isinstance(logits, (list, tuple)):
                     logits = logits[-1]
@@ -152,31 +158,33 @@ class EvaluationWorker(QThread):
                 pred = pred.squeeze(0)                               # (1,H,W)
 
                 tp, fp, tn, fn = _confusion(pred, mask)
-                agg_tp += tp; agg_fp += fp
-                agg_tn += tn; agg_fn += fn
+                agg_tp += tp
+                agg_fp += fp
+                agg_tn += tn
+                agg_fn += fn
 
                 tile_iou = tp / (tp + fp + fn + 1e-7)
-                tile_f1  = 2 * tp / (2 * tp + fp + fn + 1e-7)
+                tile_f1 = 2 * tp / (2 * tp + fp + fn + 1e-7)
                 tile_pre = tp / (tp + fp + 1e-7)
                 tile_rec = tp / (tp + fn + 1e-7)
                 tile_acc = (tp + tn) / (tp + tn + fp + fn + 1e-7)
 
                 per_tile.append({
-                    "filename":       dataset.filenames[i],
-                    "iou":            tile_iou,
-                    "f1":             tile_f1,
-                    "precision":      tile_pre,
-                    "recall":         tile_rec,
+                    "filename": dataset.filenames[i],
+                    "iou": tile_iou,
+                    "f1": tile_f1,
+                    "precision": tile_pre,
+                    "recall": tile_rec,
                     "pixel_accuracy": tile_acc,
                 })
 
                 if i in sample_idxs:
                     samples.append({
-                        "filename":  dataset.filenames[i],
-                        "image":     image.numpy(),        # (C,H,W) float32
-                        "gt_mask":   mask.numpy(),         # (1,H,W) float32
+                        "filename": dataset.filenames[i],
+                        "image": image.numpy(),        # (C,H,W) float32
+                        "gt_mask": mask.numpy(),         # (1,H,W) float32
                         "pred_mask": pred.numpy(),         # (1,H,W) float32
-                        "iou":       tile_iou,
+                        "iou": tile_iou,
                     })
 
                 # Optionally save predicted mask as GeoTIFF
@@ -192,10 +200,10 @@ class EvaluationWorker(QThread):
         # --- Aggregate metrics -----------------------------------------------
         results = {
             "metrics": {
-                "IoU":            agg_tp / (agg_tp + agg_fp + agg_fn + 1e-7),
-                "F1 / Dice":      2 * agg_tp / (2 * agg_tp + agg_fp + agg_fn + 1e-7),
-                "Precision":      agg_tp / (agg_tp + agg_fp + 1e-7),
-                "Recall":         agg_tp / (agg_tp + agg_fn + 1e-7),
+                "IoU": agg_tp / (agg_tp + agg_fp + agg_fn + 1e-7),
+                "F1 / Dice": 2 * agg_tp / (2 * agg_tp + agg_fp + agg_fn + 1e-7),
+                "Precision": agg_tp / (agg_tp + agg_fp + 1e-7),
+                "Recall": agg_tp / (agg_tp + agg_fn + 1e-7),
                 "Pixel Accuracy": (agg_tp + agg_tn) / (
                     agg_tp + agg_tn + agg_fp + agg_fn + 1e-7
                 ),
@@ -206,10 +214,10 @@ class EvaluationWorker(QThread):
                 "TN": int(agg_tn),
                 "FN": int(agg_fn),
             },
-            "per_tile":    per_tile,
-            "samples":     samples,
+            "per_tile": per_tile,
+            "samples": samples,
             "total_tiles": total,
-            "split":       split,
+            "split": split,
         }
 
         # --- CSV export ------------------------------------------------------
@@ -238,7 +246,7 @@ def _confusion(pred: torch.Tensor, target: torch.Tensor):
 
 def _save_csv(results: dict, cfg: dict) -> str:
     os.makedirs(cfg["output_dir"], exist_ok=True)
-    split    = results.get("split", "eval")
+    split = results.get("split", "eval")
     csv_path = os.path.join(
         cfg["output_dir"], f"evaluation_{split}_per_tile.csv"
     )
@@ -257,7 +265,10 @@ def _save_csv(results: dict, cfg: dict) -> str:
     return csv_path
 
 
-def _save_mask_geotiff(pred_arr: np.ndarray, ref_image_path: str, out_path: str):
+def _save_mask_geotiff(
+        pred_arr: np.ndarray,
+        ref_image_path: str,
+        out_path: str):
     """
     Saves a binary prediction (H, W) uint8 GeoTIFF with the same
     geotransform and CRS as the reference image tile.
@@ -270,7 +281,7 @@ def _save_mask_geotiff(pred_arr: np.ndarray, ref_image_path: str, out_path: str)
         if ref is None:
             return
 
-        gt  = ref.GetGeoTransform()
+        gt = ref.GetGeoTransform()
         wkt = ref.GetProjection()
         h, w = pred_arr.shape
 

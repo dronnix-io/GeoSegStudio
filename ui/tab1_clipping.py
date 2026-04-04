@@ -22,15 +22,18 @@ class ClippingWidget(QWidget):
         self.content = SectionContentWidget()
         form = self.content.layout()
 
-        # Window Size — restricted to sizes supported by all model architectures
+        # Window Size — restricted to sizes supported by all model
+        # architectures
         self.window_size = QComboBox()
         for size in SUPPORTED_SIZES:
             self.window_size.addItem(str(size), size)
-        self.window_size.setCurrentIndex(SUPPORTED_SIZES.index(256))   # default 256
+        self.window_size.setCurrentIndex(
+            SUPPORTED_SIZES.index(256))   # default 256
         self.window_size.setToolTip(
             "Tile size in pixels. Only sizes supported by the model "
-            "architectures are available: " + ", ".join(str(s) for s in SUPPORTED_SIZES)
-        )
+            "architectures are available: " +
+            ", ".join(
+                str(s) for s in SUPPORTED_SIZES))
         form.addRow("Window Size (px)", self.window_size)
 
         # Stride
@@ -116,9 +119,9 @@ class ClippingWidget(QWidget):
 
     def get_clipping_params(self) -> dict:
         return {
-            "window_size":   self.window_size.currentData(),   # int from SUPPORTED_SIZES
-            "stride":        self.stride.value(),
-            "burn_value":    self.burn_value.value(),
+            "window_size": self.window_size.currentData(),   # int from SUPPORTED_SIZES
+            "stride": self.stride.value(),
+            "burn_value": self.burn_value.value(),
             "output_format": self.output_format.currentText(),
-            "cpu_count":     self.cpu_spin.value(),
+            "cpu_count": self.cpu_spin.value(),
         }

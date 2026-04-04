@@ -20,7 +20,8 @@ class InsAndOutsWidget(QWidget):
         # Main expandable-style section with disabled toggle
         self.section = ExpandableGroupBox("Ins & Outs")
         self.section.toggle_button.setChecked(True)
-        self.section.toggle_button.setEnabled(False)  # Disables user clicking the arrow
+        self.section.toggle_button.setEnabled(
+            False)  # Disables user clicking the arrow
 
         # Section content layout
         self.content = SectionContentWidget()
@@ -79,7 +80,8 @@ class InsAndOutsWidget(QWidget):
                 self.vector_combo.addItem(layer.name(), layer.id())
 
     def _select_output_directory(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Output Directory")
         if folder:
             self.output_dir_edit.setText(folder)
 
@@ -89,4 +91,3 @@ class InsAndOutsWidget(QWidget):
         vector_id = self.vector_combo.currentData()
         output_path = self.output_dir_edit.text()
         return raster_id, vector_id, output_path
-

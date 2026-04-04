@@ -47,7 +47,7 @@ class PostProcessWidget(QWidget):
 
         # ── Input vector ─────────────────────────────────────────────────────
         input_content = SectionContentWidget()
-        input_form    = input_content.layout()
+        input_form = input_content.layout()
 
         file_row = QHBoxLayout()
         file_row.setContentsMargins(0, 0, 0, 0)
@@ -72,7 +72,8 @@ class PostProcessWidget(QWidget):
 
         # Output name (saved in same folder as input)
         self.output_name_edit = QLineEdit()
-        self.output_name_edit.setPlaceholderText("e.g. prediction_postprocessed")
+        self.output_name_edit.setPlaceholderText(
+            "e.g. prediction_postprocessed")
         self.output_name_edit.setToolTip(
             "Base name for the output GeoPackage.\n"
             "Saved in the same folder as the input vector.\n"
@@ -83,20 +84,20 @@ class PostProcessWidget(QWidget):
         inner_layout.addWidget(input_content)
 
         # ── Separator ────────────────────────────────────────────────────────
-        sep1 = QFrame(); sep1.setFrameShape(QFrame.HLine)
+        sep1 = QFrame()
+        sep1.setFrameShape(QFrame.HLine)
         sep1.setFrameShadow(QFrame.Sunken)
         inner_layout.addWidget(sep1)
 
         # ── Operations ───────────────────────────────────────────────────────
         ops_content = SectionContentWidget()
-        ops_form    = ops_content.layout()
+        ops_form = ops_content.layout()
 
         # 1. Merge touching
         self.merge_check = QCheckBox("Merge touching / overlapping polygons")
         self.merge_check.setToolTip(
             "Dissolves adjacent or overlapping polygons into single features.\n"
-            "Run this first so area thresholds apply to the merged shapes."
-        )
+            "Run this first so area thresholds apply to the merged shapes.")
         ops_form.addRow(self.merge_check)
 
         # 2. Fill holes
@@ -206,11 +207,12 @@ class PostProcessWidget(QWidget):
         inner_layout.addWidget(ops_content)
 
         # ── Separator ────────────────────────────────────────────────────────
-        sep2 = QFrame(); sep2.setFrameShape(QFrame.HLine)
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.HLine)
         sep2.setFrameShadow(QFrame.Sunken)
         inner_layout.addWidget(sep2)
 
-        # ── Apply / Stop buttons ──────────────────────────────────────────────
+        # ── Apply / Stop buttons ─────────────────────────────────────────────
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
 
@@ -227,7 +229,7 @@ class PostProcessWidget(QWidget):
         btn_row.addWidget(self.stop_btn)
         inner_layout.addLayout(btn_row)
 
-        # ── Phase label + progress bar + status ───────────────────────────────
+        # ── Phase label + progress bar + status ──────────────────────────────
         self.phase_label = QLabel("")
         self.phase_label.setAlignment(Qt.AlignCenter)
         self.phase_label.setVisible(False)
@@ -247,7 +249,7 @@ class PostProcessWidget(QWidget):
         self.status_label.setVisible(False)
         inner_layout.addWidget(self.status_label)
 
-        # ── Assemble section ──────────────────────────────────────────────────
+        # ── Assemble section ─────────────────────────────────────────────────
         section_layout = QVBoxLayout()
         section_layout.setContentsMargins(0, 0, 0, 0)
         section_layout.addWidget(inner)
@@ -257,7 +259,7 @@ class PostProcessWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.section)
 
-        # ── Connections ───────────────────────────────────────────────────────
+        # ── Connections ──────────────────────────────────────────────────────
         self.input_browse_btn.clicked.connect(self._browse_input)
 
         # Enable parameter spinboxes only when their checkbox is ticked
@@ -267,7 +269,8 @@ class PostProcessWidget(QWidget):
         self.simplify_check.toggled.connect(self.simplify_spin.setEnabled)
         self.smooth_check.toggled.connect(self.smooth_spin.setEnabled)
 
-        # Input path starts empty — user can browse or it auto-fills after prediction
+        # Input path starts empty — user can browse or it auto-fills after
+        # prediction
 
     # -------------------------------------------------------------------------
     # Internal helpers
@@ -306,25 +309,28 @@ class PostProcessWidget(QWidget):
 
     def get_config(self) -> dict:
         """Returns the full post-processing configuration dict."""
-        input_path  = self.input_edit.text().strip()
+        input_path = self.input_edit.text().strip()
         output_name = self.output_name_edit.text().strip() or "prediction_postprocessed"
-        output_dir  = os.path.dirname(input_path) if input_path else ""
-        output_path = os.path.join(output_dir, output_name + ".gpkg") if output_dir else ""
+        output_dir = os.path.dirname(input_path) if input_path else ""
+        output_path = os.path.join(
+            output_dir,
+            output_name +
+            ".gpkg") if output_dir else ""
 
         return {
-            "input_path":         input_path,
-            "output_path":        output_path,
-            "merge_touching":     self.merge_check.isChecked(),
-            "fill_holes":         self.fill_check.isChecked(),
-            "min_hole_area":      self.fill_spin.value(),
-            "filter_min_area":    self.min_area_check.isChecked(),
-            "min_area":           self.min_area_spin.value(),
-            "filter_max_area":    self.max_area_check.isChecked(),
-            "max_area":           self.max_area_spin.value(),
-            "simplify":           self.simplify_check.isChecked(),
+            "input_path": input_path,
+            "output_path": output_path,
+            "merge_touching": self.merge_check.isChecked(),
+            "fill_holes": self.fill_check.isChecked(),
+            "min_hole_area": self.fill_spin.value(),
+            "filter_min_area": self.min_area_check.isChecked(),
+            "min_area": self.min_area_spin.value(),
+            "filter_max_area": self.max_area_check.isChecked(),
+            "max_area": self.max_area_spin.value(),
+            "simplify": self.simplify_check.isChecked(),
             "simplify_tolerance": self.simplify_spin.value(),
-            "smooth":             self.smooth_check.isChecked(),
-            "smooth_iterations":  self.smooth_spin.value(),
+            "smooth": self.smooth_check.isChecked(),
+            "smooth_iterations": self.smooth_spin.value(),
         }
 
     # -------------------------------------------------------------------------

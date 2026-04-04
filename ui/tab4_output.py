@@ -24,15 +24,15 @@ from .styles import style_icon_btn
 
 
 _FORMATS = [
-    ("Vector — GeoPackage (.gpkg)",  "vector"),
-    ("Raster — GeoTIFF (.tif)",      "raster"),
-    ("Both — GeoPackage + GeoTIFF",  "both"),
+    ("Vector — GeoPackage (.gpkg)", "vector"),
+    ("Raster — GeoTIFF (.tif)", "raster"),
+    ("Both — GeoPackage + GeoTIFF", "both"),
 ]
 
 _EXT = {
     "vector": [".gpkg"],
     "raster": [".tif"],
-    "both":   [".gpkg", ".tif"],
+    "both": [".gpkg", ".tif"],
 }
 
 
@@ -42,7 +42,7 @@ class PredictOutputWidget(QWidget):
 
         self.section = ExpandableGroupBox("Output")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Output folder ---------------------------------------------------
         dir_row = QHBoxLayout()
@@ -57,7 +57,8 @@ class PredictOutputWidget(QWidget):
         self.dir_btn = QPushButton("…")
         self.dir_btn.setFixedWidth(30)
         style_icon_btn(self.dir_btn)
-        self.dir_btn.setToolTip("Choose the folder where the output file(s) will be saved.")
+        self.dir_btn.setToolTip(
+            "Choose the folder where the output file(s) will be saved.")
         dir_row.addWidget(self.dir_btn)
 
         self.form.addRow("Output Folder", dir_row)
@@ -67,8 +68,7 @@ class PredictOutputWidget(QWidget):
         self.name_edit.setToolTip(
             "Base filename without extension.\n"
             "The correct extension is added automatically based on the format.\n"
-            "Example:  solar_panels  →  solar_panels.gpkg"
-        )
+            "Example:  solar_panels  →  solar_panels.gpkg")
         self.form.addRow("Output Name", self.name_edit)
 
         # --- Output format ---------------------------------------------------
@@ -79,8 +79,7 @@ class PredictOutputWidget(QWidget):
             "Vector (GeoPackage): polygonizes the binary prediction into polygons.\n"
             "  Recommended — matches the original vector ground-truth format.\n\n"
             "Raster (GeoTIFF): single-band uint8 mask (0 = background, 255 = positive).\n\n"
-            "Both: saves a GeoPackage and a GeoTIFF with the same base name."
-        )
+            "Both: saves a GeoPackage and a GeoTIFF with the same base name.")
         self.form.addRow("Format", self.format_combo)
 
         # --- Preview (read-only) ---------------------------------------------
@@ -129,9 +128,9 @@ class PredictOutputWidget(QWidget):
 
     def _update_preview(self):
         folder = self.dir_edit.text().strip()
-        name   = self.name_edit.text().strip() or "prediction"
-        fmt    = self.format_combo.currentData()
-        exts   = _EXT.get(fmt, [".gpkg"])
+        name = self.name_edit.text().strip() or "prediction"
+        fmt = self.format_combo.currentData()
+        exts = _EXT.get(fmt, [".gpkg"])
 
         if not folder:
             self.preview_lbl.setText("—")
@@ -152,9 +151,9 @@ class PredictOutputWidget(QWidget):
         The worker appends the correct extension(s) based on output_format.
         """
         folder = self.dir_edit.text().strip()
-        name   = self.name_edit.text().strip() or "prediction"
+        name = self.name_edit.text().strip() or "prediction"
         return {
-            "output_format":  self.format_combo.currentData(),
-            "output_path":    os.path.join(folder, name) if folder else "",
+            "output_format": self.format_combo.currentData(),
+            "output_path": os.path.join(folder, name) if folder else "",
             "load_into_qgis": self.load_check.isChecked(),
         }

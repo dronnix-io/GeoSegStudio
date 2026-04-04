@@ -70,10 +70,12 @@ class SegmentationDataset(Dataset):
 
     def __init__(self, images_dir: str, masks_dir: str):
         self.images_dir = images_dir
-        self.masks_dir  = masks_dir
+        self.masks_dir = masks_dir
 
-        image_names = {f for f in os.listdir(images_dir) if f.lower().endswith(".tif")}
-        mask_names  = {f for f in os.listdir(masks_dir)  if f.lower().endswith(".tif")}
+        image_names = {f for f in os.listdir(
+            images_dir) if f.lower().endswith(".tif")}
+        mask_names = {f for f in os.listdir(
+            masks_dir) if f.lower().endswith(".tif")}
         common = sorted(image_names & mask_names)
 
         if not common:
@@ -138,7 +140,7 @@ def build_dataloaders(config: dict):
 
     def _make(split: str) -> DataLoader:
         images_dir = os.path.join(aug_dir, split, "images")
-        masks_dir  = os.path.join(aug_dir, split, "masks")
+        masks_dir = os.path.join(aug_dir, split, "masks")
         ds = SegmentationDataset(images_dir, masks_dir)
         return DataLoader(
             ds,

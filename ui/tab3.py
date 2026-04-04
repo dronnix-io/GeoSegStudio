@@ -16,9 +16,9 @@ from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QScrollArea, QSizePolicy, QMessageBox,
 )
 
-from .tab3_model   import EvalModelWidget
+from .tab3_model import EvalModelWidget
 from .tab3_dataset import EvalDatasetWidget
-from .tab3_run     import EvalRunWidget
+from .tab3_run import EvalRunWidget
 from .tab3_results import EvalResultsWidget
 from .tab3_samples import EvalSamplesWidget
 
@@ -27,9 +27,9 @@ class Tab3Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.model   = EvalModelWidget()
+        self.model = EvalModelWidget()
         self.dataset = EvalDatasetWidget()
-        self.run     = EvalRunWidget()
+        self.run = EvalRunWidget()
         self.results = EvalResultsWidget()
         self.samples = EvalSamplesWidget()
 
@@ -90,7 +90,11 @@ class Tab3Widget(QWidget):
         if self._worker and self._worker.isRunning():
             self._worker.stop()
 
-    def _on_evaluation_finished(self, success: bool, results: object, message: str):
+    def _on_evaluation_finished(
+            self,
+            success: bool,
+            results: object,
+            message: str):
         self.run.set_running(False)
 
         if success:
@@ -119,7 +123,7 @@ class Tab3Widget(QWidget):
         """
         # Model
         checkpoint_path = self.model.get_checkpoint_path()
-        meta            = self.model.get_metadata()
+        meta = self.model.get_metadata()
 
         if not checkpoint_path:
             return None, "Please select a checkpoint file."
@@ -132,7 +136,7 @@ class Tab3Widget(QWidget):
         # Dataset
         dataset_dir = self.dataset.get_dataset_dir()
         aug_version = self.dataset.get_selected_version()
-        split       = self.dataset.get_split()
+        split = self.dataset.get_split()
 
         if not dataset_dir:
             return None, "Please select a dataset folder."
@@ -162,13 +166,13 @@ class Tab3Widget(QWidget):
 
         config = {
             "checkpoint_path": checkpoint_path,
-            "dataset_dir":     dataset_dir,
-            "aug_version":     aug_version,
-            "split":           split,
-            "device":          run_cfg["device"],
-            "output_dir":      run_cfg["output_dir"],
-            "save_masks":      run_cfg["save_masks"],
-            "n_samples":       run_cfg["n_samples"],
+            "dataset_dir": dataset_dir,
+            "aug_version": aug_version,
+            "split": split,
+            "device": run_cfg["device"],
+            "output_dir": run_cfg["output_dir"],
+            "save_masks": run_cfg["save_masks"],
+            "n_samples": run_cfg["n_samples"],
         }
 
         return config, None

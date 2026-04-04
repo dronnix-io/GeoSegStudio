@@ -46,8 +46,14 @@ def validate_for_clipping(config: dict) -> tuple:
     """
     warnings = []
 
-    raster_layer = _resolve_layer(config["raster_id"], QgsMapLayer.RasterLayer, "Raster")
-    vector_layer = _resolve_layer(config["vector_id"], QgsMapLayer.VectorLayer, "Vector")
+    raster_layer = _resolve_layer(
+        config["raster_id"],
+        QgsMapLayer.RasterLayer,
+        "Raster")
+    vector_layer = _resolve_layer(
+        config["vector_id"],
+        QgsMapLayer.VectorLayer,
+        "Vector")
 
     _check_geometry_type(vector_layer)
     _check_has_features(vector_layer)
@@ -123,9 +129,8 @@ def _resolve_layer(layer_id: str, expected_type, label: str):
     """
     if not layer_id:
         raise ValidationError(
-            f"{label} layer is not selected. Please choose a {label.lower()} layer "
-            "from the 'Ins & Outs' section."
-        )
+            f"{label} layer is not selected. Please choose a {
+                label.lower()} layer " "from the 'Ins & Outs' section.")
 
     layer = QgsProject.instance().mapLayer(layer_id)
 
@@ -138,8 +143,8 @@ def _resolve_layer(layer_id: str, expected_type, label: str):
     if layer.type() != expected_type:
         type_name = "raster" if expected_type == QgsMapLayer.RasterLayer else "vector"
         raise ValidationError(
-            f"The selected {label} layer '{layer.name()}' is not a {type_name} layer."
-        )
+            f"The selected {label} layer '{
+                layer.name()}' is not a {type_name} layer.")
 
     return layer
 
@@ -157,12 +162,13 @@ def _check_geometry_type(vector_layer):
 
     if geom_type != QgsWkbTypes.PolygonGeometry:
         type_names = {
-            QgsWkbTypes.PointGeometry:   "Point",
-            QgsWkbTypes.LineGeometry:    "Line / LineString",
+            QgsWkbTypes.PointGeometry: "Point",
+            QgsWkbTypes.LineGeometry: "Line / LineString",
             QgsWkbTypes.UnknownGeometry: "Unknown",
-            QgsWkbTypes.NullGeometry:    "Null",
+            QgsWkbTypes.NullGeometry: "Null",
         }
-        human_type = type_names.get(geom_type, f"unsupported (code {geom_type})")
+        human_type = type_names.get(
+            geom_type, f"unsupported (code {geom_type})")
         raise ValidationError(
             f"The vector layer '{vector_layer.name()}' has geometry type '{human_type}'. "
             "Only Polygon and MultiPolygon layers are supported. "
@@ -248,27 +254,29 @@ def _check_disk_space(config: dict, raster_layer):
     """
     clip = config["clip_params"]
     window_size = clip["window_size"]
-    stride      = clip["stride"]
-    pixel_size  = raster_layer.rasterUnitsPerPixelX()   # native raster resolution
-    band_count  = raster_layer.bandCount()
+    stride = clip["stride"]
+    pixel_size = raster_layer.rasterUnitsPerPixelX()   # native raster resolution
+    band_count = raster_layer.bandCount()
 
-    extent     = raster_layer.extent()
-    tile_geo   = window_size * pixel_size
+    extent = raster_layer.extent()
+    tile_geo = window_size * pixel_size
     stride_geo = stride * pixel_size
 
-    nx = max(1, int((extent.width()  - tile_geo) / stride_geo) + 1)
+    nx = max(1, int((extent.width() - tile_geo) / stride_geo) + 1)
     ny = max(1, int((extent.height() - tile_geo) / stride_geo) + 1)
     tile_count = nx * ny
 
     image_bytes = window_size * window_size * band_count * 4  # float32
-    mask_bytes  = window_size * window_size                   # uint8
-    required    = int(tile_count * (image_bytes + mask_bytes) * 1.3)
+    mask_bytes = window_size * window_size                   # uint8
+    required = int(tile_count * (image_bytes + mask_bytes) * 1.3)
 
     free = shutil.disk_usage(config["output_dir"]).free
 
     if free < required:
         def _fmt(b):
-            return f"{b / 1024**3:.2f} GB" if b >= 1024**3 else f"{b / 1024**2:.0f} MB"
+            return f"{b /
+                      1024**3:.2f} GB" if b >= 1024**3 else f"{b /
+                                                               1024**2:.0f} MB"
         raise ValidationError(
             f"Insufficient disk space for the clipping output.\n"
             f"  Estimated required : {_fmt(required)}  (~{tile_count} tiles)\n"
@@ -309,7 +317,7 @@ def _check_clipping_prerequisite(config: dict):
     Checks that the selected clipping version exists and contains image tiles.
     Raises ValidationError if not found.
     """
-    prefix  = config.get("prefix", "dataset")
+    prefix = config.get("prefix", "dataset")
     version = config.get("clipping_version")
     output_dir = config["output_dir"]
 
@@ -340,7 +348,7 @@ def _check_splitting_prerequisite(config: dict):
     in at least one of the train / valid / test folders.
     Raises ValidationError if not found.
     """
-    prefix  = config.get("prefix", "dataset")
+    prefix = config.get("prefix", "dataset")
     version = config.get("splitting_version")
     output_dir = config["output_dir"]
 

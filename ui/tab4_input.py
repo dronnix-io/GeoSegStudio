@@ -33,12 +33,12 @@ class PredictInputWidget(QWidget):
         super().__init__(parent)
 
         self._band_count = None
-        self._raster_w   = None
-        self._raster_h   = None
+        self._raster_w = None
+        self._raster_h = None
 
         self.section = ExpandableGroupBox("Input Raster")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Source mode toggle ----------------------------------------------
         mode_row = QHBoxLayout()
@@ -46,7 +46,7 @@ class PredictInputWidget(QWidget):
         mode_row.setSpacing(12)
 
         self.radio_layer = QRadioButton("QGIS layer")
-        self.radio_file  = QRadioButton("From file")
+        self.radio_file = QRadioButton("From file")
         self.radio_layer.setChecked(True)
 
         self._mode_group = QButtonGroup(self)
@@ -174,12 +174,12 @@ class PredictInputWidget(QWidget):
             if ds is None:
                 raise IOError("GDAL could not open the file.")
 
-            w     = ds.RasterXSize
-            h     = ds.RasterYSize
+            w = ds.RasterXSize
+            h = ds.RasterYSize
             bands = ds.RasterCount
-            gt    = ds.GetGeoTransform()
-            wkt   = ds.GetProjection()
-            ds    = None
+            gt = ds.GetGeoTransform()
+            wkt = ds.GetProjection()
+            ds = None
 
             crs_name = "Unknown"
             if wkt:
@@ -189,17 +189,17 @@ class PredictInputWidget(QWidget):
                 if name:
                     crs_name = name
 
-            px     = abs(gt[1]) if gt else None
+            px = abs(gt[1]) if gt else None
             px_str = f"{px:.6f} mu" if px is not None else "?"
 
             self._band_count = bands
-            self._raster_w   = w
-            self._raster_h   = h
+            self._raster_w = w
+            self._raster_h = h
 
             self.info_cards.set_cards([
                 ("Dimensions", f"{w} × {h} px"),
-                ("Bands",      str(bands)),
-                ("CRS",        crs_name),
+                ("Bands", str(bands)),
+                ("CRS", crs_name),
                 ("Pixel Size", px_str),
             ])
 
@@ -211,8 +211,8 @@ class PredictInputWidget(QWidget):
 
     def _clear_info(self):
         self._band_count = None
-        self._raster_w   = None
-        self._raster_h   = None
+        self._raster_w = None
+        self._raster_h = None
         self.info_cards.clear_cards()
 
     # -------------------------------------------------------------------------

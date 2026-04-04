@@ -46,12 +46,12 @@ class AugmentationWidget(QWidget):
 
         self.augmentations = [
             ("Original", True),
-            ("Rotate 90",  False),
+            ("Rotate 90", False),
             ("Rotate 180", False),
             ("Rotate 270", False),
-            ("Mirror",  False),
-            ("Flip H",  False),
-            ("Flip V",  False),
+            ("Mirror", False),
+            ("Flip H", False),
+            ("Flip V", False),
         ]
 
         self.checkboxes = {}
@@ -140,7 +140,8 @@ class AugmentationWidget(QWidget):
         """
         self.splitting_version_combo.clear()
         if not versions:
-            self.splitting_version_combo.addItem("No splitting versions found", None)
+            self.splitting_version_combo.addItem(
+                "No splitting versions found", None)
             self.apply_btn.setEnabled(False)
         else:
             for v in versions:
@@ -179,4 +180,6 @@ class AugmentationWidget(QWidget):
     # -------------------------------------------------------------------------
 
     def selected_methods(self) -> list:
-        return [label for label, cb in self.checkboxes.items() if cb.isChecked()]
+        return [
+            label for label,
+            cb in self.checkboxes.items() if cb.isChecked()]

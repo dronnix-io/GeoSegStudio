@@ -30,7 +30,7 @@ class EvalModelWidget(QWidget):
 
         self.section = ExpandableGroupBox("Model")
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Checkpoint file picker ------------------------------------------
         file_row = QHBoxLayout()
@@ -38,7 +38,8 @@ class EvalModelWidget(QWidget):
         file_row.setSpacing(4)
 
         self.path_edit = QLineEdit()
-        self.path_edit.setPlaceholderText("Browse to a trained .pth checkpoint …")
+        self.path_edit.setPlaceholderText(
+            "Browse to a trained .pth checkpoint …")
         self.path_edit.setReadOnly(True)
         file_row.addWidget(self.path_edit)
 
@@ -60,7 +61,7 @@ class EvalModelWidget(QWidget):
         self.hint_lbl.setVisible(False)
         self.form.addRow("", self.hint_lbl)
 
-        # --- Metadata cards (hidden until checkpoint loaded) ------------------
+        # --- Metadata cards (hidden until checkpoint loaded) -----------------
         self.meta_cards = MetaCardGrid(cols_per_row=3)
         self.form.addRow(self.meta_cards)
 
@@ -97,7 +98,10 @@ class EvalModelWidget(QWidget):
 
         try:
             import torch
-            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
+            data = torch.load(
+                path,
+                map_location="cpu",
+                weights_only=False)  # nosec B614
         except ImportError:
             self._show_hint(
                 "PyTorch is not installed — cannot read checkpoint metadata.",
@@ -113,40 +117,43 @@ class EvalModelWidget(QWidget):
             return
 
         saved = data.get("config", {})
-        arch     = data.get("architecture") or saved.get("architecture")
-        epoch    = data.get("epoch")
-        val_iou  = data.get("val_iou")
-        in_ch    = saved.get("in_channels")
+        arch = data.get("architecture") or saved.get("architecture")
+        epoch = data.get("epoch")
+        val_iou = data.get("val_iou")
+        in_ch = saved.get("in_channels")
         img_size = saved.get("img_size")
 
         missing = []
-        if not arch:          missing.append("architecture")
-        if in_ch is None:     missing.append("in_channels")
-        if img_size is None:  missing.append("img_size")
+        if not arch:
+            missing.append("architecture")
+        if in_ch is None:
+            missing.append("in_channels")
+        if img_size is None:
+            missing.append("img_size")
 
         if missing:
             self._show_hint(
-                "Checkpoint is missing required metadata: "
-                + ", ".join(missing)
-                + ".\nIt may have been saved by an older version of this plugin.",
+                "Checkpoint is missing required metadata: " +
+                ", ".join(missing) +
+                ".\nIt may have been saved by an older version of this plugin.",
                 error=True,
             )
             return
 
         self._meta = {
             "architecture": arch,
-            "epoch":        epoch,
-            "val_iou":      val_iou,
-            "in_channels":  in_ch,
-            "img_size":     img_size,
+            "epoch": epoch,
+            "val_iou": val_iou,
+            "in_channels": in_ch,
+            "img_size": img_size,
         }
 
         self.meta_cards.set_cards([
-            ("Architecture",  arch),
-            ("Epoch",         str(epoch) if epoch is not None else "—"),
-            ("Val IoU",       f"{val_iou:.4f}" if val_iou is not None else "—"),
-            ("Input Bands",   str(in_ch)),
-            ("Tile Size",     f"{img_size} × {img_size} px"),
+            ("Architecture", arch),
+            ("Epoch", str(epoch) if epoch is not None else "—"),
+            ("Val IoU", f"{val_iou:.4f}" if val_iou is not None else "—"),
+            ("Input Bands", str(in_ch)),
+            ("Tile Size", f"{img_size} × {img_size} px"),
         ])
 
         self._show_hint("Checkpoint loaded successfully.", error=False)

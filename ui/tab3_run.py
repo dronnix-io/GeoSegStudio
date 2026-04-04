@@ -59,7 +59,7 @@ class EvalRunWidget(QWidget):
         self.section.toggle_button.setEnabled(False)
 
         self.content = SectionContentWidget()
-        self.form    = self.content.layout()
+        self.form = self.content.layout()
 
         # --- Device ----------------------------------------------------------
         device_row = QHBoxLayout()
@@ -210,11 +210,13 @@ class EvalRunWidget(QWidget):
         self.device_combo.blockSignals(False)
 
         color = "red" if is_error else "green"
-        self.device_hint.setText(f"<span style='color:{color}'>{message}</span>")
+        self.device_hint.setText(
+            f"<span style='color:{color}'>{message}</span>")
         self.device_hint.setVisible(True)
 
     def _browse_output_dir(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Directory")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Output Directory")
         if folder:
             self.output_dir_edit.setText(folder)
 
@@ -225,10 +227,10 @@ class EvalRunWidget(QWidget):
     def get_run_config(self) -> dict:
         """Returns the hardware and output configuration for EvaluationWorker."""
         return {
-            "device":      self.device_combo.currentData(),
-            "output_dir":  self.output_dir_edit.text().strip(),
-            "save_masks":  self.save_masks_check.isChecked(),
-            "n_samples":   self.n_samples_spin.value(),
+            "device": self.device_combo.currentData(),
+            "output_dir": self.output_dir_edit.text().strip(),
+            "save_masks": self.save_masks_check.isChecked(),
+            "n_samples": self.n_samples_spin.value(),
         }
 
     # -------------------------------------------------------------------------
