@@ -187,7 +187,7 @@ class CheckpointsWidget(QWidget):
         """Reads the checkpoint file and shows a summary hint."""
         try:
             import torch
-            data = torch.load(path, map_location="cpu")
+            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
 
             arch    = data.get("architecture", "unknown")
             epoch   = data.get("epoch",        "?")

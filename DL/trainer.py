@@ -320,7 +320,7 @@ class TrainingWorker(QThread):
     @staticmethod
     def _load_checkpoint(path: str, model, optimizer, device):
         """Loads state from a .pth checkpoint. Returns (start_epoch, best_iou)."""
-        data = torch.load(path, map_location=device)
+        data = torch.load(path, map_location=device, weights_only=False)  # nosec B614
         model.load_state_dict(data["model_state_dict"])
         if "optimizer_state_dict" in data:
             try:

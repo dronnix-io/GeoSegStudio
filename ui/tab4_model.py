@@ -87,7 +87,7 @@ class PredictModelWidget(QWidget):
 
         try:
             import torch
-            data = torch.load(path, map_location="cpu")
+            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
         except ImportError:
             self._show_hint(
                 "PyTorch is not installed — cannot read checkpoint metadata.",

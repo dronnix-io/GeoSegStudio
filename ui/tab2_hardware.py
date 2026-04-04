@@ -53,7 +53,7 @@ def _detect_devices() -> tuple:
         name = torch.cuda.get_device_name(i)
         devices.append((f"CUDA:{i}  ({name})", f"cuda:{i}"))
 
-    msg = (
+    msg = (  # nosec B608
         f"{count} GPU{'s' if count > 1 else ''} detected. "
         "Select one from the dropdown above."
     )

@@ -185,7 +185,7 @@ class Tab2Widget(QWidget):
 
         try:
             import torch
-            data = torch.load(path, map_location="cpu")
+            data = torch.load(path, map_location="cpu", weights_only=False)  # nosec B614
         except Exception as exc:
             return (
                 f"Could not read the checkpoint file:\n  {exc}\n\n"

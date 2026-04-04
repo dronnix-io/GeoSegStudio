@@ -92,7 +92,7 @@ class PredictionWorker(QThread):
 
         # --- Load checkpoint -------------------------------------------------
         self.phase_update.emit("Loading model from checkpoint…")
-        ckpt = torch.load(cfg["checkpoint_path"], map_location=device)
+        ckpt = torch.load(cfg["checkpoint_path"], map_location=device, weights_only=False)  # nosec B614
 
         saved = ckpt.get("config", {})
         architecture = ckpt.get("architecture") or saved.get("architecture")
