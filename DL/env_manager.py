@@ -182,24 +182,50 @@ def get_pip_cmd(cuda_key: str) -> list[str]:
 def create_env() -> tuple[bool, str]:
     """
     Creates the virtualenv at ENV_DIR with --system-site-packages.
+    Uses --without-pip to avoid ensurepip issues with QGIS bundled Python,
+    then bootstraps pip via get-pip.py.
 
     Returns (success, message).
     """
+    import urllib.request
+    import shutil
+
     try:
+        # Remove any partial env from a previous failed attempt
+        if ENV_DIR.exists():
+            shutil.rmtree(ENV_DIR)
+
+        # Create venv without pip (avoids ensurepip failure on QGIS Python)
         result = subprocess.run(
-            [_find_system_python(), "-m", "venv", "--system-site-packages", str(ENV_DIR)],
+            [
+                _find_system_python(), "-m", "venv",
+                "--system-site-packages",
+                "--without-pip",
+                str(ENV_DIR),
+            ],
             capture_output=True,
             text=True,
             timeout=120,
         )
         if result.returncode != 0:
             return False, result.stderr.strip() or "venv creation failed."
-        # Upgrade pip silently
-        subprocess.run(
-            [get_env_python(), "-m", "pip", "install", "--upgrade", "pip"],
-            capture_output=True,
-            timeout=60,
+
+        # Bootstrap pip using get-pip.py
+        get_pip_path = ENV_DIR / "get-pip.py"
+        urllib.request.urlretrieve(
+            "https://bootstrap.pypa.io/get-pip.py",
+            str(get_pip_path),
         )
+        result = subprocess.run(
+            [get_env_python(), str(get_pip_path)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        get_pip_path.unlink(missing_ok=True)
+        if result.returncode != 0:
+            return False, result.stderr.strip() or "pip bootstrap failed."
+
         return True, "Environment created."
     except Exception as exc:
         return False, str(exc)
