@@ -22,7 +22,7 @@ class ClippingWidget(QWidget):
         self.content = SectionContentWidget()
         form = self.content.layout()
 
-        # Window Size — restricted to sizes supported by all model
+        # Tile Size — restricted to sizes supported by all model
         # architectures
         self.window_size = QComboBox()
         for size in SUPPORTED_SIZES:
@@ -34,7 +34,7 @@ class ClippingWidget(QWidget):
             "architectures are available: " +
             ", ".join(
                 str(s) for s in SUPPORTED_SIZES))
-        form.addRow("Window Size (px)", self.window_size)
+        form.addRow("Tile Size (px)", self.window_size)
 
         # Stride
         self.stride = QSpinBox()

@@ -42,7 +42,7 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 | Requirement | Minimum |
 |-------------|---------|
 | Operating System | Windows 10 / 11 |
-| QGIS | 3.10 or later |
+| QGIS | 3.34 or later |
 | Python | 3.9+ (bundled with QGIS) |
 | GPU (optional) | NVIDIA GPU with CUDA 11.8, 12.1, or 12.4 |
 | RAM | 8 GB minimum, 16 GB recommended |

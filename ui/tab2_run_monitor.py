@@ -96,6 +96,7 @@ class RunMonitorWidget(QWidget):
         # --- Status label ----------------------------------------------------
         self.status_label = QLabel("")
         self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setWordWrap(True)
         self.status_label.setVisible(False)
         inner_layout.addWidget(self.status_label)
 

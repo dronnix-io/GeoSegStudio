@@ -101,7 +101,18 @@ class TrainingWorker(QThread):
         try:
             self._train()
         except Exception as exc:
-            self.training_finished.emit(False, str(exc))
+            msg = str(exc)
+            if "out of memory" in msg.lower() or "cuda" in type(exc).__name__.lower():
+                self.training_finished.emit(
+                    False,
+                    "CUDA out of memory.\n\n"
+                    "Suggestions:\n"
+                    "  • Reduce Batch Size to 1 in Training Configuration\n"
+                    "  • Use smaller tiles (512×512 or 256×256) in the Prepare tab\n"
+                    "  • Switch to CPU if your dataset is small",
+                )
+            else:
+                self.training_finished.emit(False, msg)
 
     # -------------------------------------------------------------------------
     # Main training loop
