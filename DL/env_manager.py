@@ -82,6 +82,25 @@ def _site_packages() -> Path | None:
     return None
 
 
+def _find_system_python() -> str:
+    """
+    Returns the real Python executable.
+    Inside QGIS, sys.executable is qgis.exe — we must find Python separately.
+    """
+    import shutil
+    exe = sys.executable
+    if "python" in Path(exe).stem.lower():
+        return exe
+    # sys.executable is qgis.exe — search PATH for Python
+    for candidate in ["python3", "python"]:
+        found = shutil.which(candidate)
+        if found and "python" in Path(found).stem.lower():
+            return found
+    raise RuntimeError(
+        "Could not find a Python executable to create the virtual environment."
+    )
+
+
 def get_env_python() -> str:
     """Returns the path to the env Python executable."""
     if sys.platform == "win32":
@@ -168,7 +187,7 @@ def create_env() -> tuple[bool, str]:
     """
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "venv", "--system-site-packages", str(ENV_DIR)],
+            [_find_system_python(), "-m", "venv", "--system-site-packages", str(ENV_DIR)],
             capture_output=True,
             text=True,
             timeout=120,
