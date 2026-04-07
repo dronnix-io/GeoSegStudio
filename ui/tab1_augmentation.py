@@ -65,6 +65,11 @@ class AugmentationWidget(QWidget):
         self.apply_btn = QPushButton("Apply Augmentation")
         style_primary_btn(self.apply_btn)
 
+        self.stop_btn = QPushButton("Stop")
+        self.stop_btn.setEnabled(False)
+        from .styles import style_danger_btn
+        style_danger_btn(self.stop_btn)
+
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
@@ -161,6 +166,7 @@ class AugmentationWidget(QWidget):
 
     def set_running(self, running: bool):
         self.apply_btn.setEnabled(not running)
+        self.stop_btn.setEnabled(running)
         self.refresh_btn.setEnabled(not running)
         self.progress_bar.setVisible(running)
         self.status_label.setVisible(False)

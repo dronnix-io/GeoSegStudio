@@ -35,6 +35,12 @@ class Tab1Widget(QWidget):
         self.splitting = SplittingWidget()
         self.augmentation = AugmentationWidget()
 
+        # Cancellation flags — set to True by Stop buttons
+        self._clip_cancelled = False
+        self._split_cancelled = False
+        self._aug_cancelled = False
+        self._run_all_cancelled = False
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -52,7 +58,7 @@ class Tab1Widget(QWidget):
         content_layout.addWidget(self.splitting)
         content_layout.addWidget(self.augmentation)
 
-        # Run All button
+        # Run All button + Stop All button
         self.run_all_btn = QPushButton("Run All")
         style_primary_btn(self.run_all_btn)
         self.run_all_btn.setToolTip(
@@ -61,11 +67,19 @@ class Tab1Widget(QWidget):
         )
         self.run_all_btn.clicked.connect(self._on_run_all)
 
+        from .styles import style_danger_btn
+        self.stop_all_btn = QPushButton("Stop")
+        self.stop_all_btn.setEnabled(False)
+        style_danger_btn(self.stop_all_btn)
+        self.stop_all_btn.clicked.connect(self._on_stop_all)
+
         bottom_row = QHBoxLayout()
         bottom_row.setContentsMargins(0, 0, 0, 0)
         bottom_row.setSpacing(6)
         bottom_row.addWidget(self.augmentation.apply_btn)
+        bottom_row.addWidget(self.augmentation.stop_btn)
         bottom_row.addWidget(self.run_all_btn)
+        bottom_row.addWidget(self.stop_all_btn)
         content_layout.addLayout(bottom_row)
 
         content_layout.addStretch()
@@ -77,6 +91,11 @@ class Tab1Widget(QWidget):
         self.splitting.apply_btn.clicked.connect(self._on_apply_splitting)
         self.augmentation.apply_btn.clicked.connect(
             self._on_apply_augmentation)
+
+        # Wire Stop buttons
+        self.clipping.stop_btn.clicked.connect(self._on_stop_clipping)
+        self.splitting.stop_btn.clicked.connect(self._on_stop_splitting)
+        self.augmentation.stop_btn.clicked.connect(self._on_stop_augmentation)
 
         # Wire refresh buttons on version selectors
         self.splitting.refresh_btn.clicked.connect(
@@ -167,10 +186,30 @@ class Tab1Widget(QWidget):
             self.augmentation.set_status(f"Refresh failed: {e}", error=True)
 
     # -------------------------------------------------------------------------
+    # Stop handlers
+    # -------------------------------------------------------------------------
+
+    def _on_stop_clipping(self):
+        self._clip_cancelled = True
+
+    def _on_stop_splitting(self):
+        self._split_cancelled = True
+
+    def _on_stop_augmentation(self):
+        self._aug_cancelled = True
+
+    def _on_stop_all(self):
+        self._run_all_cancelled = True
+        self._clip_cancelled = True
+        self._split_cancelled = True
+        self._aug_cancelled = True
+
+    # -------------------------------------------------------------------------
     # Apply Clipping
     # -------------------------------------------------------------------------
 
     def _on_apply_clipping(self):
+        self._clip_cancelled = False
         config = self._clipping_config()
         self.clipping.set_running(True)
 
@@ -179,7 +218,14 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result = run_clipping(config, progress_callback=on_progress)
+            result = run_clipping(
+                config,
+                progress_callback=on_progress,
+                cancelled_callback=lambda: self._clip_cancelled,
+            )
+            if self._clip_cancelled:
+                self.clipping.set_status("Clipping stopped by user.", error=True)
+                return
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -212,6 +258,7 @@ class Tab1Widget(QWidget):
     # -------------------------------------------------------------------------
 
     def _on_apply_splitting(self):
+        self._split_cancelled = False
         config = self._splitting_config()
         self.splitting.set_running(True)
 
@@ -220,7 +267,14 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result = run_splitting(config, progress_callback=on_progress)
+            result = run_splitting(
+                config,
+                progress_callback=on_progress,
+                cancelled_callback=lambda: self._split_cancelled,
+            )
+            if self._split_cancelled:
+                self.splitting.set_status("Splitting stopped by user.", error=True)
+                return
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -253,6 +307,7 @@ class Tab1Widget(QWidget):
     # -------------------------------------------------------------------------
 
     def _on_apply_augmentation(self):
+        self._aug_cancelled = False
         config = self._augmentation_config()
         self.augmentation.set_running(True)
 
@@ -261,7 +316,14 @@ class Tab1Widget(QWidget):
             QCoreApplication.processEvents()
 
         try:
-            result = run_augmentation(config, progress_callback=on_progress)
+            result = run_augmentation(
+                config,
+                progress_callback=on_progress,
+                cancelled_callback=lambda: self._aug_cancelled,
+            )
+            if self._aug_cancelled:
+                self.augmentation.set_status("Augmentation stopped by user.", error=True)
+                return
             warnings = result.get("warnings", [])
 
             if warnings:
@@ -293,6 +355,11 @@ class Tab1Widget(QWidget):
     # -------------------------------------------------------------------------
 
     def _on_run_all(self):
+        self._run_all_cancelled = False
+        self._clip_cancelled = False
+        self._split_cancelled = False
+        self._aug_cancelled = False
+
         config = self._clipping_config()
         config["prefix"] = self._prefix()
         config["split_percentages"] = self.splitting.get_split_percentages()
@@ -302,6 +369,7 @@ class Tab1Widget(QWidget):
         self.splitting.set_running(True)
         self.augmentation.set_running(True)
         self.run_all_btn.setEnabled(False)
+        self.stop_all_btn.setEnabled(True)
 
         def clip_progress(pct):
             self.clipping.progress_bar.setValue(pct)
@@ -321,7 +389,14 @@ class Tab1Widget(QWidget):
                 clipping_progress=clip_progress,
                 splitting_progress=split_progress,
                 augmentation_progress=aug_progress,
+                cancelled_callback=lambda: self._run_all_cancelled,
             )
+
+            if self._run_all_cancelled:
+                self.clipping.set_status("Stopped by user.", error=True)
+                self.splitting.set_status("Stopped by user.", error=True)
+                self.augmentation.set_status("Stopped by user.", error=True)
+                return
 
             cr = results["clipping"]
             sr = results["splitting"]
@@ -364,3 +439,4 @@ class Tab1Widget(QWidget):
             self.splitting.set_running(False)
             self.augmentation.set_running(False)
             self.run_all_btn.setEnabled(True)
+            self.stop_all_btn.setEnabled(False)
