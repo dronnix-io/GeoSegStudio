@@ -103,6 +103,19 @@ The plugin installs PyTorch automatically into an isolated environment (`env/` i
 
 ---
 
+## Sample Dataset
+
+A sample dataset for testing GeoSeg Studio is available on Hugging Face:
+
+**[Drone Building Extraction Dataset — Calgary](https://huggingface.co/datasets/dronnix-io/drone-building-extraction)**
+
+- High-resolution drone imagery (DJI Matrice 4E) over a residential area in Calgary, Alberta, Canada
+- 4-band GeoTIFF orthomosaics (RGB + Alpha) with manually annotated building polygons
+- Ready to use directly in the Prepare tab — no pre-processing required
+- License: CC BY 4.0
+
+---
+
 ## Workflow Overview
 
 GeoSeg Studio is organized into four tabs, each covering one stage of the pipeline:
