@@ -65,21 +65,9 @@ class ClippingWidget(QWidget):
         bottom_layout.setContentsMargins(0, 6, 0, 0)
         bottom_layout.setSpacing(4)
 
-        btn_row = QHBoxLayout()
-        btn_row.setSpacing(6)
-        btn_row.setContentsMargins(0, 0, 0, 0)
-
         self.apply_btn = QPushButton("Apply Clipping")
         style_primary_btn(self.apply_btn)
-        btn_row.addWidget(self.apply_btn)
-
-        self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setEnabled(False)
-        from .styles import style_danger_btn
-        style_danger_btn(self.stop_btn)
-        btn_row.addWidget(self.stop_btn)
-
-        bottom_layout.addLayout(btn_row)
+        bottom_layout.addWidget(self.apply_btn)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
@@ -112,7 +100,6 @@ class ClippingWidget(QWidget):
 
     def set_running(self, running: bool):
         self.apply_btn.setEnabled(not running)
-        self.stop_btn.setEnabled(running)
         self.progress_bar.setVisible(running)
         self.status_label.setVisible(False)
         if running:

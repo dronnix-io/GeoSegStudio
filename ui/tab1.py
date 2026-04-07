@@ -3,8 +3,9 @@ module: tab1.py
 """
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QSizePolicy,
-    QPushButton, QMessageBox
+    QPushButton, QMessageBox,
 )
+
 from qgis.PyQt.QtCore import QCoreApplication
 
 from .tab1_ins_outs import InsAndOutsWidget
@@ -70,6 +71,7 @@ class Tab1Widget(QWidget):
         from .styles import style_danger_btn
         self.stop_all_btn = QPushButton("Stop")
         self.stop_all_btn.setEnabled(False)
+        self.stop_all_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         style_danger_btn(self.stop_all_btn)
         self.stop_all_btn.clicked.connect(self._on_stop_all)
 
@@ -77,7 +79,6 @@ class Tab1Widget(QWidget):
         bottom_row.setContentsMargins(0, 0, 0, 0)
         bottom_row.setSpacing(6)
         bottom_row.addWidget(self.augmentation.apply_btn)
-        bottom_row.addWidget(self.augmentation.stop_btn)
         bottom_row.addWidget(self.run_all_btn)
         bottom_row.addWidget(self.stop_all_btn)
         content_layout.addLayout(bottom_row)
@@ -91,11 +92,6 @@ class Tab1Widget(QWidget):
         self.splitting.apply_btn.clicked.connect(self._on_apply_splitting)
         self.augmentation.apply_btn.clicked.connect(
             self._on_apply_augmentation)
-
-        # Wire Stop buttons
-        self.clipping.stop_btn.clicked.connect(self._on_stop_clipping)
-        self.splitting.stop_btn.clicked.connect(self._on_stop_splitting)
-        self.augmentation.stop_btn.clicked.connect(self._on_stop_augmentation)
 
         # Wire refresh buttons on version selectors
         self.splitting.refresh_btn.clicked.connect(
@@ -212,6 +208,7 @@ class Tab1Widget(QWidget):
         self._clip_cancelled = False
         config = self._clipping_config()
         self.clipping.set_running(True)
+        self.stop_all_btn.setEnabled(True)
 
         def on_progress(pct):
             self.clipping.progress_bar.setValue(pct)
@@ -253,6 +250,9 @@ class Tab1Widget(QWidget):
         else:
             self.clipping.set_running(False)
 
+        finally:
+            self.stop_all_btn.setEnabled(False)
+
     # -------------------------------------------------------------------------
     # Apply Splitting
     # -------------------------------------------------------------------------
@@ -261,6 +261,7 @@ class Tab1Widget(QWidget):
         self._split_cancelled = False
         config = self._splitting_config()
         self.splitting.set_running(True)
+        self.stop_all_btn.setEnabled(True)
 
         def on_progress(pct):
             self.splitting.progress_bar.setValue(pct)
@@ -302,6 +303,9 @@ class Tab1Widget(QWidget):
         else:
             self.splitting.set_running(False)
 
+        finally:
+            self.stop_all_btn.setEnabled(False)
+
     # -------------------------------------------------------------------------
     # Apply Augmentation
     # -------------------------------------------------------------------------
@@ -310,6 +314,7 @@ class Tab1Widget(QWidget):
         self._aug_cancelled = False
         config = self._augmentation_config()
         self.augmentation.set_running(True)
+        self.stop_all_btn.setEnabled(True)
 
         def on_progress(pct):
             self.augmentation.progress_bar.setValue(pct)
@@ -349,6 +354,9 @@ class Tab1Widget(QWidget):
 
         else:
             self.augmentation.set_running(False)
+
+        finally:
+            self.stop_all_btn.setEnabled(False)
 
     # -------------------------------------------------------------------------
     # Run All
