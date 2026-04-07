@@ -11,13 +11,14 @@ via Qt signals once the worker thread is wired up.
 """
 import csv
 import os
+import time
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QProgressBar, QLabel, QTableWidget, QTableWidgetItem,
     QHeaderView, QSizePolicy,
 )
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor
 
 from .expandable_groupbox import ExpandableGroupBox
@@ -74,6 +75,17 @@ class RunMonitorWidget(QWidget):
         self.phase_label.setAlignment(Qt.AlignCenter)
         self.phase_label.setVisible(False)
         inner_layout.addWidget(self.phase_label)
+
+        # --- Timer label -----------------------------------------------------
+        self.timer_label = QLabel("")
+        self.timer_label.setAlignment(Qt.AlignCenter)
+        self.timer_label.setVisible(False)
+        inner_layout.addWidget(self.timer_label)
+
+        self._timer = QTimer(self)
+        self._timer.setInterval(1000)
+        self._timer.timeout.connect(self._update_timer)
+        self._start_time = None
 
         # --- Epoch progress bar ----------------------------------------------
         self.progress_bar = QProgressBar()
@@ -139,9 +151,14 @@ class RunMonitorWidget(QWidget):
             self.phase_label.setText("Starting...")
             self.phase_label.setVisible(True)
             self.status_label.setVisible(False)
+            self._start_time = time.time()
+            self.timer_label.setText("Elapsed: 0:00:00")
+            self.timer_label.setVisible(True)
+            self._timer.start()
         else:
             self.phase_label.setVisible(False)
             self.batch_bar.setVisible(False)
+            self._timer.stop()
 
     def add_epoch_row(
         self,
@@ -176,14 +193,18 @@ class RunMonitorWidget(QWidget):
 
     def set_status(self, message: str, error: bool = False):
         """Shows a status message below the progress bar."""
+        self._timer.stop()
+        elapsed = self._elapsed_str()
         color = "red" if error else "green"
+        suffix = f"  ({elapsed})" if elapsed else ""
         self.status_label.setText(
-            f"<span style='color:{color}'>{message}</span>"
+            f"<span style='color:{color}'>{message}{suffix}</span>"
         )
         self.status_label.setVisible(True)
         self.progress_bar.setVisible(False)
         self.batch_bar.setVisible(False)
         self.phase_label.setVisible(False)
+        self.timer_label.setVisible(False)
 
     def set_output_paths(self, output_dir: str, model_name: str):
         """
@@ -215,6 +236,8 @@ class RunMonitorWidget(QWidget):
 
     def reset_monitor(self):
         """Clears the table and resets all monitor widgets to idle state."""
+        self._timer.stop()
+        self._start_time = None
         self.table.setRowCount(0)
         self.table.setVisible(False)
         self.progress_bar.setValue(0)
@@ -223,6 +246,8 @@ class RunMonitorWidget(QWidget):
         self.batch_bar.setVisible(False)
         self.phase_label.setText("")
         self.phase_label.setVisible(False)
+        self.timer_label.setText("")
+        self.timer_label.setVisible(False)
         self.status_label.setVisible(False)
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
@@ -246,6 +271,20 @@ class RunMonitorWidget(QWidget):
                 ])
         except Exception:
             pass
+
+    def _update_timer(self):
+        """Called every second by QTimer to update the elapsed time label."""
+        self.timer_label.setText(f"Elapsed: {self._elapsed_str()}")
+
+    def _elapsed_str(self) -> str:
+        """Returns elapsed time as H:MM:SS string, or empty if not started."""
+        if self._start_time is None:
+            return ""
+        elapsed = int(time.time() - self._start_time)
+        h = elapsed // 3600
+        m = (elapsed % 3600) // 60
+        s = elapsed % 60
+        return f"{h}:{m:02d}:{s:02d}"
 
     def _highlight_best_iou(self):
         """Colours the row with the highest Val IoU light green."""
