@@ -1,4 +1,4 @@
-from qgis.PyQt.QtWidgets import QAction, QMessageBox
+from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
 from .ui.main_ui import GeoSegStudioDockWidget
 from qgis.PyQt.QtCore import Qt
@@ -38,42 +38,6 @@ class GeoSegStudioPlugin:
         if self.dock_widget:
             self.iface.removeDockWidget(self.dock_widget)
             self.dock_widget = None
-
-        self._offer_env_removal()
-
-    def _offer_env_removal(self):
-        """
-        Asks the user whether to delete the PyTorch virtual environment
-        when the plugin is unloaded (i.e. uninstalled via Plugin Manager).
-        The env folder can be several GB — skipping it silently is the
-        main reason reinstalls fail or leave orphaned data.
-        """
-        try:
-            from .DL.env_manager import ENV_DIR
-        except Exception:
-            return
-
-        if not ENV_DIR.exists():
-            return
-
-        reply = QMessageBox.question(
-            None,
-            "GeoSeg Studio — Remove PyTorch Environment?",
-            "The PyTorch environment installed by GeoSeg Studio is still present:\n\n"
-            f"  {ENV_DIR}\n\n"
-            "Do you want to delete it now?\n\n"
-            "• Yes — removes the environment (~3–5 GB freed)\n"
-            "• No  — keeps it (useful if you plan to reinstall)",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-
-        if reply == QMessageBox.Yes:
-            try:
-                import shutil
-                shutil.rmtree(ENV_DIR, ignore_errors=True)
-            except Exception:
-                pass
 
     def show_dock(self):
         # Check / bootstrap the PyTorch environment on first open
