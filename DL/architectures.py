@@ -50,7 +50,7 @@ import torch.nn.functional as F
 SUPPORTED_SIZES: List[int] = [64, 128, 256, 512, 1024]
 """Square patch sizes (px) supported by all architectures."""
 
-MAX_IN_CHANNELS: int = 10
+MAX_IN_CHANNELS: int = 40
 """Maximum number of input raster bands accepted by any model."""
 
 MAX_SIZE: int = 1024
@@ -124,7 +124,7 @@ class UNet(nn.Module):
     1×1 Conv head (1 output channel).
 
     Args:
-        in_channels   : Raster bands fed into the model (1 – 10).
+        in_channels   : Raster bands fed into the model (1 – 40).
         img_size      : Square spatial size of each input patch; must be one of
                         ``SUPPORTED_SIZES``.
         base_channels : Feature-map width at the first encoder stage (default 64).
@@ -221,7 +221,7 @@ class AttentionUNet(nn.Module):
     (Oktay et al., "Attention U-Net", 2018).
 
     Args:
-        in_channels   : Raster bands fed into the model (1 – 10).
+        in_channels   : Raster bands fed into the model (1 – 40).
         img_size      : Square spatial size of each input patch; must be one of
                         ``SUPPORTED_SIZES``.
         base_channels : Feature-map width at the first encoder stage (default 64).
@@ -299,7 +299,7 @@ class UNetPP(nn.Module):
               column index *j* = 0 (encoder) … 4 (final decoder).
 
     Args:
-        in_channels       : Raster bands fed into the model (1 – 10).
+        in_channels       : Raster bands fed into the model (1 – 40).
         img_size          : Square spatial size of each input patch; must be in
                             ``SUPPORTED_SIZES``.
         base_channels     : Feature-map width at depth 0 (default 64).
@@ -725,7 +725,7 @@ class SwinUNet(nn.Module):
     pixel-shuffle final upsample → 1×1 Conv head.
 
     Args:
-        in_channels  : Raster bands fed into the model (1 – 10).
+        in_channels  : Raster bands fed into the model (1 – 40).
         img_size     : Square spatial size of each input patch; must be one of
                        ``SUPPORTED_SIZES``.
         patch_size   : Patch embedding stride / kernel (default 4).
@@ -914,7 +914,7 @@ class LinkNet(nn.Module):
     Culurciello, "LinkNet", VCIP 2017).
 
     Args:
-        in_channels   : Raster bands fed into the model (1 – 10).
+        in_channels   : Raster bands fed into the model (1 – 40).
         img_size      : Square spatial size of each input patch; must be one of
                         ``SUPPORTED_SIZES``.
         base_channels : Feature-map width at encoder stage 1 (default 64).
@@ -1071,7 +1071,7 @@ class DeepLabV3Plus(nn.Module):
     the receptive field stays meaningful even on 64 × 64 tiles.
 
     Args:
-        in_channels   : Raster bands fed into the model (1 – 10).
+        in_channels   : Raster bands fed into the model (1 – 40).
         img_size      : Square spatial size of each input patch; must be one of
                         ``SUPPORTED_SIZES``.
         base_channels : Feature-map width at encoder stage 1 (default 64).
@@ -1326,7 +1326,7 @@ class SegFormer(nn.Module):
     are required — the model is fully compatible with arbitrary band counts.
 
     Args:
-        in_channels  : Raster bands fed into the model (1 – 10).
+        in_channels  : Raster bands fed into the model (1 – 40).
         img_size     : Square spatial size of each input patch; must be one of
                        ``SUPPORTED_SIZES``.
         embed_dims   : Embedding dims per stage (default [32, 64, 160, 256]).
@@ -1439,7 +1439,7 @@ def build_model(
         name        : Architecture key – one of ``AVAILABLE_MODELS``:
                       ``"unet"``, ``"attention_unet"``, ``"unet_pp"``, ``"swin_unet"``,
                       ``"linknet"``, ``"deeplabv3plus"``, ``"segformer"``.
-        in_channels : Number of input raster bands (1 – 10).
+        in_channels : Number of input raster bands (1 – 40).
         img_size    : Square patch size in pixels; must be in ``SUPPORTED_SIZES``.
         **kwargs    : Extra keyword arguments forwarded to the model constructor
                       (e.g. ``base_channels``, ``deep_supervision``, ``embed_dim``).

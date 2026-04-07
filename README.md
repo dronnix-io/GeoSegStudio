@@ -189,7 +189,7 @@ All models perform **binary segmentation** (one foreground class vs. background)
 
 **Input constraints:**
 - Patch size: 64, 128, 256, 512, or 1024 pixels (square)
-- Input bands: 1 to 10
+- Input bands: 1 to 40 (supports hyperspectral imagery)
 
 ---
 
