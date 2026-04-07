@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" width="96" alt="GeoSeg Studio icon" />
+</p>
+
 # GeoSeg Studio
 
 **GeoSeg Studio** is an open-source QGIS plugin for deep learning semantic segmentation of geospatial raster data — no coding required.
