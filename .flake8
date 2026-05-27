@@ -1,0 +1,15 @@
+[flake8]
+# E221  multiple spaces before operator  (intentional alignment)
+# E241  multiple spaces after ','        (intentional alignment)
+# E501  line too long                    (common in ML/DL code)
+# W503  line break before binary op      (style preference)
+# F401  imported but unused              (some imports are conditional/re-exported)
+ignore = E221, E241, E501, W503, F401
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    env,
+    dist,
+    docs,
+    notes
