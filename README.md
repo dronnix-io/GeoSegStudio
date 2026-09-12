@@ -65,6 +65,17 @@ See [Upgrading from an earlier version](#upgrading-from-an-earlier-version) befo
 
 ---
 
+## Handbook
+
+A full practical guide is published in this repository, free to read:
+
+**[GeoSeg Studio Handbook](docs/handbook/)** — a chapter-by-chapter guide covering dataset
+preparation, model selection, training, honest evaluation, and turning predictions into GIS
+deliverables, plus a complete worked project at 3 cm resolution with every real parameter
+and metric.
+
+---
+
 ## Key Features
 
 - Full pipeline in a single plugin: data preparation → training → evaluation → prediction
