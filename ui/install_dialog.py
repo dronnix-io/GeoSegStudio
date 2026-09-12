@@ -16,17 +16,20 @@ Flow
 
 from __future__ import annotations
 
-import subprocess
+import subprocess  # nosec B404 — runs the env's pip via a fixed argv list.
 
 from qgis.PyQt.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QComboBox, QPushButton, QTextEdit, QProgressBar,
     QSizePolicy,
 )
-from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal
+from qgis.PyQt.QtCore import QThread, pyqtSignal
 from qgis.PyQt.QtGui import QFont
 
-from ..DL.env_manager import CUDA_OPTIONS, create_env, get_pip_cmd
+from ..DL.env_manager import (
+    CUDA_OPTIONS, ENV_DIR, create_env, get_pip_cmd, no_window_kwargs,
+    recommend_cuda_key,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -37,7 +40,9 @@ class _InstallWorker(QThread):
     """Creates the env, then runs pip, streaming output line-by-line."""
 
     log_line = pyqtSignal(str)   # one line of pip output
-    finished = pyqtSignal(bool, str)  # (success, message)
+    # Deliberately NOT named `finished`: QThread already defines a finished()
+    # signal, and shadowing it breaks Qt's own thread teardown notifications.
+    install_done = pyqtSignal(bool, str)  # (success, message)
 
     def __init__(self, cuda_key: str, parent=None):
         super().__init__(parent)
@@ -48,7 +53,7 @@ class _InstallWorker(QThread):
         self.log_line.emit("Creating virtual environment …")
         ok, msg = create_env()
         if not ok:
-            self.finished.emit(False, f"Failed to create environment:\n{msg}")
+            self.install_done.emit(False, f"Failed to create environment:\n{msg}")
             return
         self.log_line.emit("Virtual environment created.\n")
 
@@ -57,24 +62,27 @@ class _InstallWorker(QThread):
         self.log_line.emit("Running: " + " ".join(cmd) + "\n")
 
         try:
+            # cmd is built by get_pip_cmd() from a validated key — a fixed
+            # argv list, never a shell string, so nothing here is injectable.
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                **no_window_kwargs(),
             )
             for line in proc.stdout:
                 self.log_line.emit(line.rstrip())
             proc.wait()
 
             if proc.returncode == 0:
-                self.finished.emit(True, "Installation complete.")
+                self.install_done.emit(True, "Installation complete.")
             else:
-                self.finished.emit(
-                    False, f"pip exited with code {
-                        proc.returncode}.")
+                self.install_done.emit(
+                    False, f"pip exited with code {proc.returncode}."
+                )
         except Exception as exc:
-            self.finished.emit(False, str(exc))
+            self.install_done.emit(False, str(exc))
 
 
 # ---------------------------------------------------------------------------
@@ -104,26 +112,52 @@ class InstallDialog(QDialog):
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
+        # Reinstalling deletes and recreates the environment. On Windows that
+        # fails if torch is already loaded into this QGIS process, so say so
+        # up front rather than after a 5 GB download.
+        if ENV_DIR.exists():
+            warn = QLabel(
+                "<b>An environment already exists.</b> Installing again "
+                "replaces it — use this to switch between CPU and CUDA "
+                "builds, or after updating your NVIDIA driver.<br>"
+                "If PyTorch has already been used in this QGIS session, "
+                "restart QGIS first, then reinstall without opening the "
+                "GeoSeg Studio panel; otherwise Windows keeps the files "
+                "locked and the rebuild fails."
+            )
+            warn.setWordWrap(True)
+            layout.addWidget(warn)
+
         # --- CUDA option picker ----------------------------------------------
         opt_row = QHBoxLayout()
         opt_row.addWidget(QLabel("Hardware / CUDA:"))
 
         self.cuda_combo = QComboBox()
-        for key, (label, _) in CUDA_OPTIONS.items():
+        for key, (label, _url, _drv) in CUDA_OPTIONS.items():
             self.cuda_combo.addItem(label, key)
-        # Default to CPU (last item) so users don't accidentally pick wrong
-        # CUDA
-        self.cuda_combo.setCurrentIndex(len(CUDA_OPTIONS) - 1)
+
+        # Preselect what this machine can actually run, rather than defaulting
+        # to CPU. Defaulting to CPU meant anyone who clicked straight through
+        # got a CPU-only build, and since this dialog only opens when no env
+        # exists, there was no way back to a GPU build afterwards.
+        recommended, reason = recommend_cuda_key()
+        idx = self.cuda_combo.findData(recommended)
+        if idx >= 0:
+            self.cuda_combo.setCurrentIndex(idx)
         opt_row.addWidget(self.cuda_combo, 1)
         layout.addLayout(opt_row)
+
+        self.detect_label = QLabel(reason)
+        self.detect_label.setWordWrap(True)
+        layout.addWidget(self.detect_label)
 
         # --- Log window ------------------------------------------------------
         self.log_edit = QTextEdit()
         self.log_edit.setReadOnly(True)
         self.log_edit.setFont(QFont("Courier New", 9))
         self.log_edit.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Expanding)
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding)
         self.log_edit.setPlaceholderText(
             "Installation output will appear here …")
         layout.addWidget(self.log_edit)
@@ -167,7 +201,7 @@ class InstallDialog(QDialog):
 
         self._worker = _InstallWorker(cuda_key, parent=self)
         self._worker.log_line.connect(self._append_log)
-        self._worker.finished.connect(self._on_finished)
+        self._worker.install_done.connect(self._on_finished)
         self._worker.start()
 
     def _append_log(self, line: str):
@@ -189,6 +223,22 @@ class InstallDialog(QDialog):
             self.install_btn.setEnabled(True)
             self.skip_btn.setEnabled(True)
             self.cuda_combo.setEnabled(True)
+
+    def closeEvent(self, event):
+        """
+        Blocks closing while the install thread is alive.
+
+        Destroying the dialog would destroy its child QThread mid-run, which
+        crashes QGIS rather than just cancelling the install.
+        """
+        worker = self._worker
+        if worker is not None and worker.isRunning():
+            self._append_log(
+                "\nInstallation is still running — please wait for it to finish."
+            )
+            event.ignore()
+            return
+        super().closeEvent(event)
 
     # -------------------------------------------------------------------------
     # Public API
