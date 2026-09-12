@@ -10,25 +10,115 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  # Gates the release. A tag that fails any of this never produces a ZIP,
+  # so a broken build cannot reach GitHub Releases or plugins.qgis.org.
+  verify:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Check out the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Python
+      # The tag and metadata.txt must agree. plugins.qgis.org refuses to
+      # re-upload a version it already has, so a mismatch here means either a
+      # rejected upload or a ZIP whose reported version is not the tag.
+      - name: Check tag matches metadata.txt version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          META=$(python -c "import configparser;c=configparser.ConfigParser();c.read('metadata.txt',encoding='utf-8');print(c['general']['version'])")
+          echo "tag=$TAG  metadata.txt=$META"
+          if [ "$TAG" != "$META" ]; then
+            echo "::error::Tag v$TAG does not match metadata.txt version $META. Bump metadata.txt or retag."
+            exit 1
+          fi
+
+      # QGIS runs the plugin on whatever Python its build ships. That is 3.12
+      # on current Windows builds but the distro Python on Linux (3.10 on
+      # Ubuntu 22.04, 3.11 on Debian 12). Byte-compiling on the oldest
+      # supported interpreter catches syntax that only newer Python accepts —
+      # this is what would have caught the PEP 701 f-strings in v1.0.0.
+      - name: Set up oldest supported Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Syntax check on oldest supported Python
+        run: |
+          python - <<'EOF'
+          import pathlib, py_compile, sys
+          skip = {".git", "env", "dist", "docs", "notes", "__pycache__"}
+          bad = []
+          for p in sorted(pathlib.Path(".").rglob("*.py")):
+              if set(p.parts) & skip:
+                  continue
+              try:
+                  py_compile.compile(str(p), cfile="/tmp/out.pyc", doraise=True)
+              except py_compile.PyCompileError as exc:
+                  bad.append(f"{p}: {str(exc).strip().splitlines()[-1]}")
+          for b in bad:
+              print(f"::error::{b}")
+          print(f"checked on Python {sys.version.split()[0]}; failures: {len(bad)}")
+          sys.exit(1 if bad else 0)
+          EOF
+
+      - name: Set up current Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Lint and security scan
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 bandit
+          flake8 .
+          # Fail only on medium/high severity; the remaining low findings are
+          # the documented pip/venv subprocess calls.
+          bandit -r . -x ./env,./dist,./docs,./notes,./.git --severity-level medium
+
+  build-and-release:
+    needs: verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      # 3. Build the ZIP using the existing package.py script
       - name: Build plugin ZIP
         run: python package.py
 
-      # 4. Publish a GitHub Release and attach the ZIP
+      # Guards against working files (decks, PDFs, caches) leaking into the
+      # published artifact, and against the 20 MB plugins.qgis.org limit.
+      - name: Verify ZIP contents
+        run: |
+          python - <<'EOF'
+          import sys, zipfile
+          z = zipfile.ZipFile("dist/GeoSegStudio.zip")
+          names = z.namelist()
+          errs = []
+          tops = {n.split("/")[0] for n in names}
+          if tops != {"GeoSegStudio"}:
+              errs.append(f"ZIP must contain exactly one top-level folder, got {tops}")
+          if "GeoSegStudio/metadata.txt" not in names:
+              errs.append("metadata.txt missing from ZIP")
+          if "GeoSegStudio/__init__.py" not in names:
+              errs.append("__init__.py missing from ZIP")
+          banned = (".pdf", ".ppt", ".pptx", ".doc", ".docx", ".xls", ".xlsx", ".pyc")
+          leaked = [n for n in names if n.lower().endswith(banned) or "__pycache__" in n]
+          if leaked:
+              errs.append(f"non-plugin files leaked into ZIP: {leaked[:10]}")
+          size = sum(z.getinfo(n).file_size for n in names)
+          if size > 20 * 1024 * 1024:
+              errs.append(f"uncompressed size {size} exceeds the 20 MB repository limit")
+          for e in errs:
+              print(f"::error::{e}")
+          print(f"{len(names)} files, {size // 1024} KB uncompressed")
+          sys.exit(1 if errs else 0)
+          EOF
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -44,6 +134,7 @@ jobs:
             ### First run
             On the first launch, GeoSeg Studio will prompt you to install PyTorch.
             Select the option that matches your hardware (CUDA or CPU) and click Install.
+            This downloads roughly 5 GB and needs an internet connection.
           files: dist/GeoSegStudio.zip
           draft: false
           prerelease: false

@@ -7,3 +7,21 @@ __pycache__/
 ui/__pycache__/
 DL/__pycache__/
 DL/data_preparation/__pycache__/
+
+# ---------------------------------------------------------------------------
+# Pitch decks, presenter notes and other working documents.
+#
+# These are internal material, not plugin code: they must never reach the
+# remote repository, the QGIS plugin ZIP, or a GitHub release. package.py
+# filters the same suffixes out of the ZIP as a second line of defence.
+#
+# To track one deliberately (e.g. a user-facing manual), override with:
+#     git add -f path/to/file.pdf
+# ---------------------------------------------------------------------------
+*.pdf
+*.ppt
+*.pptx
+*.doc
+*.docx
+*.xls
+*.xlsx

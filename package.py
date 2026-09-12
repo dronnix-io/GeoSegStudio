@@ -23,7 +23,6 @@ Excluded from the ZIP:
     - dist/              (output folder)
 """
 
-import os
 import zipfile
 from pathlib import Path
 
@@ -32,14 +31,15 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 PLUGIN_NAME = "GeoSegStudio"
-REPO_ROOT   = Path(__file__).resolve().parent
-OUTPUT_DIR  = REPO_ROOT / "dist"
-OUTPUT_ZIP  = OUTPUT_DIR / f"{PLUGIN_NAME}.zip"
+REPO_ROOT = Path(__file__).resolve().parent
+OUTPUT_DIR = REPO_ROOT / "dist"
+OUTPUT_ZIP = OUTPUT_DIR / f"{PLUGIN_NAME}.zip"
 
 EXCLUDE_DIRS = {
     "env",
     "__pycache__",
     ".git",
+    ".github",
     "notes",
     "docs",
     "dist",
@@ -47,6 +47,7 @@ EXCLUDE_DIRS = {
 
 EXCLUDE_FILES = {
     ".gitignore",
+    ".flake8",
     "package.py",
 }
 
@@ -56,9 +57,19 @@ EXCLUDE_SUFFIXES = {
     ".pyd",
 }
 
+# Working files that may sit in the repo root but must never ship inside the
+# plugin: they bloat the ZIP (a deck alone can be tens of MB) and QGIS has no
+# use for them. Filtering by suffix keeps stray files out without needing the
+# list of excluded names to be kept up to date.
+EXCLUDE_ASSET_SUFFIXES = {
+    ".pptx", ".ppt", ".docx", ".doc", ".xlsx", ".xls", ".pdf",
+    ".zip", ".7z", ".tar", ".gz", ".mp4", ".mov", ".psd",
+}
+
 # ---------------------------------------------------------------------------
 # Build
 # ---------------------------------------------------------------------------
+
 
 def should_exclude(path: Path) -> bool:
     parts = path.relative_to(REPO_ROOT).parts
@@ -67,6 +78,8 @@ def should_exclude(path: Path) -> bool:
     if path.name in EXCLUDE_FILES:
         return True
     if path.suffix in EXCLUDE_SUFFIXES:
+        return True
+    if path.suffix.lower() in EXCLUDE_ASSET_SUFFIXES:
         return True
     return False
 

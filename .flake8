@@ -1,11 +1,16 @@
 [flake8]
-# E221  multiple spaces before operator  (intentional alignment)
-# E241  multiple spaces after ','        (intentional alignment)
-# E501  line too long                    (common in ML/DL code)
-# W503  line break before binary op      (style preference)
-# F401  imported but unused              (some imports are conditional/re-exported)
-ignore = E221, E241, E501, W503, F401
+# Line length: 120 rather than 79. ML/DL code carries long tensor
+# expressions and layer definitions that read worse when wrapped.
+# No line in the codebase exceeds this, so E501 is enforced, not ignored.
 max-line-length = 120
+
+# Everything else uses pycodestyle's defaults, which already skip the
+# W503/W504 pair (they are mutually exclusive — enabling one forces the
+# other to fire) along with E121/E123/E126/E226/E24/E704.
+#
+# This file deliberately does NOT blanket-ignore F401, E501, E221 or E241.
+# An earlier version did, which hid 23 genuinely dead imports. Fix the
+# code rather than widening this list.
 exclude =
     .git,
     __pycache__,
