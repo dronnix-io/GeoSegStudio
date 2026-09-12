@@ -20,7 +20,7 @@ Read it start to finish for a complete grounding, or jump to the chapter matchin
 
 | | Chapter | What it covers |
 |---|---------|----------------|
-| | [Introduction](00_free_intro.md) | What GeoSeg Studio does, who it is for, and a first result in five minutes |
+| | [Introduction](00_introduction.md) | What GeoSeg Studio does, who it is for, and a first result in five minutes |
 
 **Part 1 — Foundation**
 

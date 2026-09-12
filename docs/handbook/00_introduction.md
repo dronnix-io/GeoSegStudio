@@ -1,7 +1,7 @@
 # GeoSeg Studio
 ## A Practical Guide to Deep Learning Segmentation for Geospatial Professionals
 
-### Free Introduction
+### Introduction
 
 **By Salar Ghaffarian, CEO and Lead AI Engineer, Dronnix Inc.**
 
@@ -17,7 +17,7 @@ Most GIS professionals are not machine learning engineers. Most machine learning
 
 **GeoSeg Studio** is an open-source QGIS plugin that puts a complete deep learning segmentation pipeline inside QGIS. No terminal. No Python scripts. No environment management. You prepare your data, train your model, evaluate it, and run predictions — all from a dock panel inside the software you already use every day.
 
-This handbook is the guide we wish had existed when we started building it.
+This handbook is the guide we wish had existed when we started building it. It is published in full, free, in this repository.
 
 ---
 
@@ -86,9 +86,9 @@ From install to first prediction: under an hour on CPU, under 20 minutes on a mi
 
 ---
 
-## What You Will Find in the Full Handbook
+## What You Will Find in the Handbook
 
-The free introduction you are reading now covers the concept, the tool, and a first result. The full handbook goes much further.
+This introduction covers the concept, the tool, and a first result. The chapters that follow go much further.
 
 **Part 1 — Foundation**
 The landscape of geospatial AI in 2025, where GeoSeg Studio fits, and a complete installation and environment setup guide including the most common failure modes and how to fix them.
@@ -118,7 +118,7 @@ GeoSeg Studio is our open-source contribution to the geospatial community. We be
 
 Version 2.0 will introduce pre-trained models for common object extraction tasks — buildings, vehicles, solar panels, and vegetation — available through the Dronnix platform. Early access for handbook readers will be announced by email.
 
-**Get the full handbook:** dronnix.com/handbook
+**Read the handbook:** [start with Chapter 1](01_remote_sensing_segmentation_2025.md), or see the [full contents](README.md)
 
 **Contact:** salar@dronnix.com
 
