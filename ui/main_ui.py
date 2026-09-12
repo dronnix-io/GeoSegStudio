@@ -7,6 +7,7 @@ from .tab1 import Tab1Widget
 from .tab2 import Tab2Widget
 from .tab3 import Tab3Widget
 from .tab4 import Tab4Widget
+from .footer_links import LinksFooter
 
 
 class GeoSegStudioDockWidget(QDockWidget):
@@ -31,6 +32,13 @@ class GeoSegStudioDockWidget(QDockWidget):
         self.tabs.addTab(self.tab4, "Predict")
 
         layout.addWidget(self.tabs)
+
+        # Community links pinned below the tabs. The rightmost link follows the
+        # active tab, so the handbook chapter for whatever the user is doing is
+        # always one click away.
+        self.footer = LinksFooter()
+        layout.addWidget(self.footer)
+
         self.setWidget(main_widget)
 
         # The Train/Evaluate/Predict tabs each detect compute devices, which
@@ -42,7 +50,9 @@ class GeoSegStudioDockWidget(QDockWidget):
         QTimer.singleShot(0, lambda: self._on_tab_changed(self.tabs.currentIndex()))
 
     def _on_tab_changed(self, index):
-        """Triggers one-off device detection for the tab being opened."""
+        """Points the footer at the right chapter and triggers device detection."""
+        self.footer.set_tab(self.tabs.tabText(index))
+
         widget = self.tabs.widget(index)
         if widget is None:
             return
