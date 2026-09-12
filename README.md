@@ -29,6 +29,42 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 
 ---
 
+## What's New in 1.1.0
+
+**QGIS 4 support.** The plugin now runs on both QGIS 3 (Qt5) and QGIS 4 (Qt6).
+
+**Security fixes.** Two issues are resolved in this release, and we recommend
+updating:
+
+- Model checkpoints are now loaded with pickle execution disabled. Previously a
+  `.pth` file could execute arbitrary code when opened — a real risk for
+  checkpoints downloaded from model zoos, forums or colleagues. Checkpoints
+  written by GeoSeg Studio are unaffected and load exactly as before.
+- The first-run setup no longer downloads and executes `get-pip.py` from the
+  network. pip is now provisioned from the Python standard library that ships
+  with QGIS, so no unverified code is fetched and run during installation.
+
+**Bug fixes.**
+
+- The plugin failed to load entirely on Python below 3.12 (a syntax error
+  introduced in 1.0.0). This affected Linux builds of QGIS using the
+  distribution Python, such as Ubuntu 22.04 and Debian 12.
+- The toolbar button showed no icon, appearing as blank space, because it
+  referenced a Qt resource path that was never compiled.
+
+**Improvements.**
+
+- The PyTorch environment moved out of the plugin folder and now lives with your
+  QGIS profile, so plugin updates no longer delete it.
+- The installer detects your GPU and NVIDIA driver and preselects a CUDA build
+  that will actually run, rather than defaulting to CPU. CUDA 12.6 and 12.8
+  (RTX 50xx / Blackwell) were added.
+- The plugin panel now opens immediately instead of pausing while PyTorch loads.
+
+See [Upgrading from an earlier version](#upgrading-from-an-earlier-version) before updating.
+
+---
+
 ## Key Features
 
 - Full pipeline in a single plugin: data preparation → training → evaluation → prediction
@@ -37,7 +73,9 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 - Sliding-window inference on full-resolution rasters with overlap blending
 - Vector post-processing: merge, fill holes, area filtering, simplify, smooth
 - No command line required — everything runs through the QGIS interface
-- Isolated Python environment — does not interfere with your QGIS installation
+- Runs on both QGIS 3 and QGIS 4 (Qt5 and Qt6)
+- Automatic GPU detection — reads your NVIDIA driver and installs a CUDA build that will actually run
+- Isolated Python environment — does not interfere with your QGIS installation, and survives plugin updates
 
 ---
 
@@ -46,9 +84,9 @@ Developed and maintained by [Dronnix](https://www.dronnix.com) — a drone mappi
 | Requirement | Minimum |
 |-------------|---------|
 | Operating System | Windows 10 / 11 |
-| QGIS | 3.34 or later |
+| QGIS | 3.34 or later — QGIS 3 and QGIS 4 are both supported |
 | Python | 3.9+ (bundled with QGIS) |
-| GPU (optional) | NVIDIA GPU with CUDA 11.8, 12.1, or 12.4 |
+| GPU (optional) | NVIDIA GPU, driver 522.06 or newer (run `nvidia-smi` to check) |
 | RAM | 8 GB minimum, 16 GB recommended |
 | Disk space | ~5 GB free (for PyTorch installation) |
 
@@ -79,6 +117,19 @@ python package.py
 ```
 This produces `dist/GeoSegStudio.zip`. Install it via Option B above.
 
+### Upgrading from an earlier version
+
+**Close QGIS before upgrading.** QGIS replaces the plugin folder during an
+update without unloading the plugin first, so on Windows the upgrade fails with
+*"Failed to remove the directory"* if PyTorch has been loaded in that session.
+Quit QGIS, reopen it, and upgrade before opening the GeoSeg Studio panel.
+
+Upgrading **from 1.0.0** additionally requires reinstalling PyTorch once. Up to
+1.0.0 the environment lived inside the plugin folder, which QGIS deletes on
+update; from 1.1.0 it lives with your QGIS profile and is kept across updates,
+so this is a one-time cost. The setup dialog appears automatically when the
+plugin next starts.
+
 ### Step 2 — Launch the plugin
 
 After installation, open the plugin in QGIS via:
@@ -91,17 +142,24 @@ Alternatively, click the **GeoSeg Studio icon** in the QGIS toolbar. The plugin 
 
 On the first launch, GeoSeg Studio will open a setup dialog asking you to choose your hardware:
 
-- **NVIDIA GPU — CUDA 11.8** — GTX/RTX 10xx, 20xx, 30xx series (older drivers)
-- **NVIDIA GPU — CUDA 12.1** — RTX 30xx, 40xx series
-- **NVIDIA GPU — CUDA 12.4** — RTX 40xx series (latest drivers)
+- **NVIDIA GPU — CUDA 12.8** — RTX 50xx / Blackwell (driver 570+)
+- **NVIDIA GPU — CUDA 12.6** — RTX 20xx / 30xx / 40xx (driver 527+)
+- **NVIDIA GPU — CUDA 11.8** — GTX 10xx and older drivers (522+)
+- **CPU only** — no NVIDIA GPU, or an AMD/Intel GPU
+
+The plugin runs `nvidia-smi`, reads your driver version, and preselects the
+option your machine can actually run — including falling back to CPU when the
+driver is too old for any CUDA build. You only need to change the selection if
+you have a reason to.
 - **CPU only** — no NVIDIA GPU, or unsure
 
-The plugin installs PyTorch automatically into an isolated environment (`env/` inside the plugin folder). This does not affect your system Python or QGIS installation.
+The plugin installs PyTorch automatically into an isolated environment stored with your QGIS profile, at `<QGIS profile>/geoseg_studio/env/`. This does not affect your system Python or QGIS installation. Keeping it outside the plugin folder means plugin updates no longer delete it, so PyTorch is downloaded once rather than after every release.
 
 > **Not sure which option to pick?**
 > - If you have no NVIDIA GPU, or you are unsure — select **CPU only**. The plugin will work fully, just without GPU acceleration.
-> - If you have an NVIDIA GPU, open a terminal and run `nvidia-smi`. Your CUDA version is shown in the top-right corner of the output. Match it to the options above.
-> - Picking a CUDA version that doesn't match your drivers is safe — PyTorch will still install, but the GPU may not be used. You can always reinstall by deleting the `env/` folder inside the plugin directory and relaunching QGIS.
+> - The preselected option is based on your actual driver version, so accepting it is normally correct.
+> - Picking a CUDA version newer than your driver supports installs fine but leaves the GPU unused — the Train tab's Hardware section will then show "CUDA is not available".
+> - To change your choice later (after a driver update, or if you picked CPU by mistake), use **Plugins → GeoSeg Studio → GeoSeg Studio — PyTorch Setup…**. Restart QGIS first and do not open the GeoSeg Studio panel before reinstalling, otherwise Windows keeps the PyTorch files locked and the rebuild fails.
 
 > **AMD and Intel GPUs** are not supported for GPU acceleration. Select **CPU only**.
 
@@ -236,6 +294,8 @@ GeoSegStudio/
 - Windows only in the current release
 - NVIDIA GPUs only for GPU-accelerated training (AMD and Intel GPUs not supported)
 - Input patches must be square
+- QGIS 4 support is new in 1.1.0 and has had less real-world exposure than the
+  QGIS 3 path; please report anything that misbehaves on the issue tracker
 
 ---
 
