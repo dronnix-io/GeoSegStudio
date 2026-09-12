@@ -12,7 +12,6 @@ Always visible (non-collapsible).  Contains:
   - Phase status label
   - Final status label (success / error)
 """
-import os
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
@@ -42,9 +41,9 @@ def _detect_devices():
         name = torch.cuda.get_device_name(i)
         devices.append((f"CUDA:{i}  ({name})", f"cuda:{i}"))
 
-    msg = (  # nosec B608
+    msg = (
         f"{count} GPU{'s' if count > 1 else ''} detected. "
-        "Select one from the dropdown above."
+        "Choose one in the dropdown above."
     )
     return devices, (msg, False)
 
@@ -144,10 +143,10 @@ class EvalRunWidget(QWidget):
 
         self.run_btn = QPushButton("Run Evaluation")
         style_primary_btn(self.run_btn)
-        self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.run_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.stop_btn.setEnabled(False)
         style_danger_btn(self.stop_btn)
 
@@ -157,7 +156,7 @@ class EvalRunWidget(QWidget):
 
         # --- Phase label -----------------------------------------------------
         self.phase_label = QLabel("")
-        self.phase_label.setAlignment(Qt.AlignCenter)
+        self.phase_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.phase_label.setVisible(False)
         inner_layout.addWidget(self.phase_label)
 
@@ -172,7 +171,7 @@ class EvalRunWidget(QWidget):
 
         # --- Status label ----------------------------------------------------
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setWordWrap(True)
         self.status_label.setVisible(False)
         inner_layout.addWidget(self.status_label)
@@ -191,7 +190,21 @@ class EvalRunWidget(QWidget):
         self.refresh_btn.clicked.connect(self._refresh_devices)
         self.output_dir_btn.clicked.connect(self._browse_output_dir)
 
-        # Populate on startup
+        # Device detection imports torch. For a CUDA build that means loading
+        # hundreds of megabytes of DLLs plus CUDA context setup — several
+        # seconds, on the GUI thread. Deferring it until this tab is actually
+        # opened lets the plugin panel appear immediately.
+        self._devices_loaded = False
+        self.device_combo.addItem("Detecting devices…", "cpu")
+        self.device_hint.setText(
+            "Looking for compute devices — the first check loads PyTorch "
+            "and can take a few seconds.")
+        self.device_hint.setVisible(True)
+
+    def ensure_devices_loaded(self):
+        """Runs device detection once, when this tab is first opened."""
+        if self._devices_loaded:
+            return
         self._refresh_devices()
 
     # -------------------------------------------------------------------------
@@ -199,6 +212,7 @@ class EvalRunWidget(QWidget):
     # -------------------------------------------------------------------------
 
     def _refresh_devices(self):
+        self._devices_loaded = True
         devices, (message, is_error) = _detect_devices()
 
         self.device_combo.blockSignals(True)

@@ -16,24 +16,25 @@ import time
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QProgressBar, QLabel, QTableWidget, QTableWidgetItem,
-    QHeaderView, QSizePolicy,
+    QHeaderView, QSizePolicy, QAbstractItemView,
 )
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor
 
 from .expandable_groupbox import ExpandableGroupBox
 from .styles import style_primary_btn, style_danger_btn, style_progress_bar
+from ..log_utils import log_warning
 
 _CSV_HEADERS = ["Epoch", "Train Loss", "Val Loss", "Val IoU", "Val F1"]
 
 
 # Metrics table column definitions: (header label, alignment)
 _COLUMNS = [
-    ("Epoch", Qt.AlignCenter),
-    ("Train Loss", Qt.AlignCenter),
-    ("Val Loss", Qt.AlignCenter),
-    ("Val IoU", Qt.AlignCenter),
-    ("Val F1", Qt.AlignCenter),
+    ("Epoch", Qt.AlignmentFlag.AlignCenter),
+    ("Train Loss", Qt.AlignmentFlag.AlignCenter),
+    ("Val Loss", Qt.AlignmentFlag.AlignCenter),
+    ("Val IoU", Qt.AlignmentFlag.AlignCenter),
+    ("Val F1", Qt.AlignmentFlag.AlignCenter),
 ]
 
 
@@ -59,10 +60,10 @@ class RunMonitorWidget(QWidget):
 
         self.start_btn = QPushButton("Start Training")
         style_primary_btn(self.start_btn)
-        self.start_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.start_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.stop_btn.setEnabled(False)
         style_danger_btn(self.stop_btn)
 
@@ -72,13 +73,13 @@ class RunMonitorWidget(QWidget):
 
         # --- Phase status label ----------------------------------------------
         self.phase_label = QLabel("")
-        self.phase_label.setAlignment(Qt.AlignCenter)
+        self.phase_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.phase_label.setVisible(False)
         inner_layout.addWidget(self.phase_label)
 
         # --- Timer label -----------------------------------------------------
         self.timer_label = QLabel("")
-        self.timer_label.setAlignment(Qt.AlignCenter)
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.timer_label.setVisible(False)
         inner_layout.addWidget(self.timer_label)
 
@@ -107,7 +108,7 @@ class RunMonitorWidget(QWidget):
 
         # --- Status label ----------------------------------------------------
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setWordWrap(True)
         self.status_label.setVisible(False)
         inner_layout.addWidget(self.status_label)
@@ -115,10 +116,10 @@ class RunMonitorWidget(QWidget):
         # --- Metrics table ---------------------------------------------------
         self.table = QTableWidget(0, len(_COLUMNS))
         self.table.setHorizontalHeaderLabels([c[0] for c in _COLUMNS])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table.setSelectionMode(QTableWidget.NoSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.table.setMinimumHeight(160)
         self.table.setVisible(False)
         inner_layout.addWidget(self.table)
@@ -269,8 +270,9 @@ class RunMonitorWidget(QWidget):
                     f"{val_iou:.6f}",
                     f"{val_f1:.6f}",
                 ])
-        except Exception:
-            pass
+        except Exception as exc:
+            log_warning(
+                f"Could not append epoch {epoch} to {self._csv_path}", exc)
 
     def _update_timer(self):
         """Called every second by QTimer to update the elapsed time label."""

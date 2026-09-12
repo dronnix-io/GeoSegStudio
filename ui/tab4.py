@@ -25,6 +25,7 @@ from .tab4_settings import PredictSettingsWidget
 from .tab4_output import PredictOutputWidget
 from .tab4_run import PredictRunWidget
 from .tab4_postprocess import PostProcessWidget
+from ..log_utils import log_warning
 
 
 class Tab4Widget(QWidget):
@@ -46,7 +47,7 @@ class Tab4Widget(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        scroll.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         scroll_content = QWidget()
         content_layout = QVBoxLayout(scroll_content)
@@ -220,8 +221,8 @@ class Tab4Widget(QWidget):
 
                 if layer.isValid():
                     QgsProject.instance().addMapLayer(layer)
-        except Exception:
-            pass
+        except Exception as exc:
+            log_warning("Could not add result layers to the project", exc)
 
     # -------------------------------------------------------------------------
     # Config assembly & validation

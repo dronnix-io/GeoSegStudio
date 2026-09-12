@@ -12,7 +12,7 @@ Constraints
 * Input patches must be **square** (H == W).
 * Maximum patch size: 1024 × 1024 px.
 * Supported sizes listed in ``SUPPORTED_SIZES`` – anything outside that list
-  will raise an AssertionError; the plugin should show ``UNSUPPORTED_SIZE_WARNING``
+  will raise a ValueError; the plugin should show ``UNSUPPORTED_SIZE_WARNING``
   to the user before the model is constructed.
 * Input channels: 1 – 10  (``MAX_IN_CHANNELS``).
 * Output channels: **1** (binary segmentation – raw logit; apply ``torch.sigmoid``
@@ -63,6 +63,23 @@ UNSUPPORTED_SIZE_WARNING: str = (
     f"The maximum allowed size is {MAX_SIZE} × {MAX_SIZE} px.\n"
     "Larger sizes and non-square patches are not accepted by any model."
 )
+
+
+def _validate_inputs(in_channels: int, img_size: int) -> None:
+    """
+    Validates the two user-facing model inputs.
+
+    Raises ValueError rather than asserting: these values come from the
+    plugin's UI, so they are runtime input, not internal invariants, and
+    `assert` is stripped entirely when Python runs with -O.
+    """
+    if not 1 <= in_channels <= MAX_IN_CHANNELS:
+        raise ValueError(
+            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
+        )
+    if img_size not in SUPPORTED_SIZES:
+        raise ValueError(UNSUPPORTED_SIZE_WARNING)
+
 
 # ===========================================================================
 # Shared CNN building blocks
@@ -138,10 +155,7 @@ class UNet(nn.Module):
         base_channels: int = 64,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         c = base_channels
         # Encoder
@@ -234,10 +248,7 @@ class AttentionUNet(nn.Module):
         base_channels: int = 64,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         c = base_channels
         # Encoder
@@ -318,10 +329,7 @@ class UNetPP(nn.Module):
         deep_supervision: bool = False,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         self.deep_supervision = deep_supervision
         nb = [base_channels * (2 ** i)
@@ -756,14 +764,15 @@ class SwinUNet(nn.Module):
         window_size: int = 8,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         depths = depths or [2, 2, 6, 2]
         num_heads = num_heads or [3, 6, 12, 24]
-        assert len(depths) == len(num_heads) == 4, "Exactly 4 stages required."
+        if len(depths) != 4 or len(num_heads) != 4:
+            raise ValueError(
+                "SwinUNet needs exactly 4 stages: got "
+                f"{len(depths)} depths and {len(num_heads)} num_heads."
+            )
 
         self.patch_size = patch_size
         self.embed_dim = embed_dim
@@ -927,10 +936,7 @@ class LinkNet(nn.Module):
         base_channels: int = 64,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         c = base_channels
         # Initial projection
@@ -1086,10 +1092,7 @@ class DeepLabV3Plus(nn.Module):
         aspp_out_ch: int = 256,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         c = base_channels
 
@@ -1347,10 +1350,7 @@ class SegFormer(nn.Module):
         decoder_dim: int = 256,
     ) -> None:
         super().__init__()
-        assert 1 <= in_channels <= MAX_IN_CHANNELS, (
-            f"in_channels must be 1 – {MAX_IN_CHANNELS}, got {in_channels}."
-        )
-        assert img_size in SUPPORTED_SIZES, UNSUPPORTED_SIZE_WARNING
+        _validate_inputs(in_channels, img_size)
 
         embed_dims = embed_dims or [32, 64, 160, 256]
         num_heads = num_heads or [1, 2, 5, 8]
@@ -1449,7 +1449,7 @@ def build_model(
 
     Raises:
         ValueError if *name* is not recognised.
-        AssertionError if *in_channels* or *img_size* are out of range.
+        ValueError if *in_channels* or *img_size* are out of range.
 
     Example::
 

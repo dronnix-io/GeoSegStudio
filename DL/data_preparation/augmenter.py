@@ -26,7 +26,6 @@ Geocoding notes:
 """
 
 import os
-import json
 import numpy as np
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -38,12 +37,28 @@ from .clipper import _next_version, _scan_versions, _write_json, _read_json
 # Augmentation method registry
 # ---------------------------------------------------------------------------
 
-def _rot90(arr): return np.rot90(arr, k=1, axes=(1, 2))
-def _rot180(arr): return np.rot90(arr, k=2, axes=(1, 2))
-def _rot270(arr): return np.rot90(arr, k=3, axes=(1, 2))
-def _mirror(arr): return np.transpose(arr, axes=(0, 2, 1))
-def _fliph(arr): return np.flip(arr, axis=2)
-def _flipv(arr): return np.flip(arr, axis=1)
+def _rot90(arr):
+    return np.rot90(arr, k=1, axes=(1, 2))
+
+
+def _rot180(arr):
+    return np.rot90(arr, k=2, axes=(1, 2))
+
+
+def _rot270(arr):
+    return np.rot90(arr, k=3, axes=(1, 2))
+
+
+def _mirror(arr):
+    return np.transpose(arr, axes=(0, 2, 1))
+
+
+def _fliph(arr):
+    return np.flip(arr, axis=2)
+
+
+def _flipv(arr):
+    return np.flip(arr, axis=1)
 
 
 METHOD_REGISTRY = {

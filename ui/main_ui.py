@@ -2,6 +2,7 @@
 module: main_ui.py
 '''
 from qgis.PyQt.QtWidgets import QDockWidget, QTabWidget, QVBoxLayout, QWidget
+from qgis.PyQt.QtCore import QTimer
 from .tab1 import Tab1Widget
 from .tab2 import Tab2Widget
 from .tab3 import Tab3Widget
@@ -31,3 +32,22 @@ class GeoSegStudioDockWidget(QDockWidget):
 
         layout.addWidget(self.tabs)
         self.setWidget(main_widget)
+
+        # The Train/Evaluate/Predict tabs each detect compute devices, which
+        # imports torch and costs several seconds. Detection is deferred until
+        # its tab is first opened so this panel appears immediately; the
+        # single-shot timer lets the tab paint (showing "Detecting devices…")
+        # before the blocking import starts.
+        self.tabs.currentChanged.connect(self._on_tab_changed)
+        QTimer.singleShot(0, lambda: self._on_tab_changed(self.tabs.currentIndex()))
+
+    def _on_tab_changed(self, index):
+        """Triggers one-off device detection for the tab being opened."""
+        widget = self.tabs.widget(index)
+        if widget is None:
+            return
+        for attr in ("hardware", "run", "settings"):
+            target = getattr(widget, attr, None)
+            loader = getattr(target, "ensure_devices_loaded", None)
+            if loader is not None:
+                QTimer.singleShot(0, loader)

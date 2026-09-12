@@ -48,11 +48,11 @@ def validate_for_clipping(config: dict) -> tuple:
 
     raster_layer = _resolve_layer(
         config["raster_id"],
-        QgsMapLayer.RasterLayer,
+        QgsMapLayer.LayerType.RasterLayer,
         "Raster")
     vector_layer = _resolve_layer(
         config["vector_id"],
-        QgsMapLayer.VectorLayer,
+        QgsMapLayer.LayerType.VectorLayer,
         "Vector")
 
     _check_geometry_type(vector_layer)
@@ -129,8 +129,9 @@ def _resolve_layer(layer_id: str, expected_type, label: str):
     """
     if not layer_id:
         raise ValidationError(
-            f"{label} layer is not selected. Please choose a {
-                label.lower()} layer " "from the 'Ins & Outs' section.")
+            f"{label} layer is not selected. Please choose a "
+            f"{label.lower()} layer from the 'Ins & Outs' section."
+        )
 
     layer = QgsProject.instance().mapLayer(layer_id)
 
@@ -141,10 +142,11 @@ def _resolve_layer(layer_id: str, expected_type, label: str):
         )
 
     if layer.type() != expected_type:
-        type_name = "raster" if expected_type == QgsMapLayer.RasterLayer else "vector"
+        type_name = "raster" if expected_type == QgsMapLayer.LayerType.RasterLayer else "vector"
         raise ValidationError(
-            f"The selected {label} layer '{
-                layer.name()}' is not a {type_name} layer.")
+            f"The selected {label} layer '{layer.name()}' "
+            f"is not a {type_name} layer."
+        )
 
     return layer
 
@@ -160,12 +162,12 @@ def _check_geometry_type(vector_layer):
     """
     geom_type = vector_layer.geometryType()
 
-    if geom_type != QgsWkbTypes.PolygonGeometry:
+    if geom_type != QgsWkbTypes.GeometryType.PolygonGeometry:
         type_names = {
-            QgsWkbTypes.PointGeometry: "Point",
-            QgsWkbTypes.LineGeometry: "Line / LineString",
-            QgsWkbTypes.UnknownGeometry: "Unknown",
-            QgsWkbTypes.NullGeometry: "Null",
+            QgsWkbTypes.GeometryType.PointGeometry: "Point",
+            QgsWkbTypes.GeometryType.LineGeometry: "Line / LineString",
+            QgsWkbTypes.GeometryType.UnknownGeometry: "Unknown",
+            QgsWkbTypes.GeometryType.NullGeometry: "Null",
         }
         human_type = type_names.get(
             geom_type, f"unsupported (code {geom_type})")
@@ -274,9 +276,9 @@ def _check_disk_space(config: dict, raster_layer):
 
     if free < required:
         def _fmt(b):
-            return f"{b /
-                      1024**3:.2f} GB" if b >= 1024**3 else f"{b /
-                                                               1024**2:.0f} MB"
+            if b >= 1024**3:
+                return f"{b / 1024**3:.2f} GB"
+            return f"{b / 1024**2:.0f} MB"
         raise ValidationError(
             f"Insufficient disk space for the clipping output.\n"
             f"  Estimated required : {_fmt(required)}  (~{tile_count} tiles)\n"

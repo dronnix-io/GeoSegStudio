@@ -167,13 +167,18 @@ def version_label(v_dict: dict) -> str:
         )
 
     if "train_pct" in info:            # splitting version
-        return (f"v{vnum}  —  " f"train {info.get('train_pct',
-                                                  '?')}% / " f"valid {info.get('valid_pct',
-                                                                               '?')}% / " f"test {info.get('test_pct',
-                                                                                                           '?')}%  " f"({info.get('train_count',
-                                                                                                                                  0) + info.get('valid_count',
-                                                                                                                                                0) + info.get('test_count',
-                                                                                                                                                              0)} tiles)")
+        total = (
+            info.get("train_count", 0)
+            + info.get("valid_count", 0)
+            + info.get("test_count", 0)
+        )
+        return (
+            f"v{vnum}  —  "
+            f"train {info.get('train_pct', '?')}% / "
+            f"valid {info.get('valid_pct', '?')}% / "
+            f"test {info.get('test_pct', '?')}%  "
+            f"({total} tiles)"
+        )
 
     if "methods" in info:              # augmentation version
         methods_str = ", ".join(info.get("methods", []))

@@ -55,6 +55,8 @@ import os
 
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 
+from ..log_utils import log_warning
+
 
 class PostProcessWorker(QThread):
 
@@ -87,7 +89,6 @@ class PostProcessWorker(QThread):
         try:
             from shapely import wkb as shapely_wkb
             from shapely.ops import unary_union
-            from shapely.geometry import Polygon, MultiPolygon
         except ImportError:
             raise ImportError(
                 "Shapely is required for post-processing.\n"
@@ -112,8 +113,9 @@ class PostProcessWorker(QThread):
                 geom = shapely_wkb.loads(bytes(geom_ref.ExportToWkb()))
                 if geom and not geom.is_empty:
                     geoms.append(geom)
-            except Exception:
-                pass
+            except Exception as exc:
+                log_warning(
+                    f"Skipping unreadable geometry {feature.GetFID()}", exc)
 
         src_ds = None
         input_count = len(geoms)
@@ -294,7 +296,7 @@ def _write_gpkg(geoms: list, srs, out_path: str):
     """Writes a list of Shapely geometries to a GeoPackage."""
     from osgeo import ogr
     from shapely import wkb as shapely_wkb
-    from shapely.geometry import Polygon, MultiPolygon
+    from shapely.geometry import MultiPolygon
 
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
 

@@ -120,11 +120,27 @@ class PredictSettingsWidget(QWidget):
         layout.addWidget(self.section)
 
         self.refresh_btn.clicked.connect(self._refresh_devices)
+        # Device detection imports torch. For a CUDA build that means loading
+        # hundreds of megabytes of DLLs plus CUDA context setup — several
+        # seconds, on the GUI thread. Deferring it until this tab is actually
+        # opened lets the plugin panel appear immediately.
+        self._devices_loaded = False
+        self.device_combo.addItem("Detecting devices…", "cpu")
+        self.device_hint.setText(
+            "Looking for compute devices — the first check loads PyTorch "
+            "and can take a few seconds.")
+        self.device_hint.setVisible(True)
+
+    def ensure_devices_loaded(self):
+        """Runs device detection once, when this tab is first opened."""
+        if self._devices_loaded:
+            return
         self._refresh_devices()
 
     # -------------------------------------------------------------------------
 
     def _refresh_devices(self):
+        self._devices_loaded = True
         devices, (message, is_error) = _detect_devices()
         self.device_combo.blockSignals(True)
         self.device_combo.clear()

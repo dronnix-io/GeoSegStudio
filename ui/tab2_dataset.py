@@ -60,8 +60,8 @@ class DatasetWidget(QWidget):
         dir_row.addWidget(self.browse_btn)
 
         ver_sep = QFrame()
-        ver_sep.setFrameShape(QFrame.VLine)
-        ver_sep.setFrameShadow(QFrame.Sunken)
+        ver_sep.setFrameShape(QFrame.Shape.VLine)
+        ver_sep.setFrameShadow(QFrame.Shadow.Sunken)
         dir_row.addWidget(ver_sep)
 
         self.version_combo = QComboBox()
@@ -250,9 +250,10 @@ class DatasetWidget(QWidget):
     def get_summary(self) -> dict:
         """Returns the current summary as a dict built from internal state."""
         return {
-            "tile_size": f"{
-                self._tile_size_int} × {
-                self._tile_size_int} px" if self._tile_size_int else "—",
+            "tile_size": (
+                f"{self._tile_size_int} × {self._tile_size_int} px"
+                if self._tile_size_int else "—"
+            ),
             "band_count": str(
                 self._band_count_int) if self._band_count_int else "—",
         }

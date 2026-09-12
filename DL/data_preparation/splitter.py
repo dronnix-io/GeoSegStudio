@@ -16,7 +16,6 @@ Output folder structure:
 """
 
 import os
-import json
 import shutil
 import random
 from datetime import datetime

@@ -23,8 +23,6 @@ import numpy as np
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from qgis.core import QgsRasterLayer
-
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -53,7 +51,7 @@ def run_clipping(config: dict,
     dict with keys: version (int), tile_count (int), skipped_count (int),
                     version_dir (str)
     """
-    from osgeo import gdal, ogr
+    from osgeo import gdal
     gdal.UseExceptions()
 
     raster_layer = config["raster_layer"]

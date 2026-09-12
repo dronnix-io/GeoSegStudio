@@ -6,13 +6,11 @@ Hardware section for the Train tab.
 Lets the user select the compute device (CPU or a detected CUDA GPU)
 and the number of dataloader workers.
 """
-import os
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
     QSpinBox, QLabel, QPushButton,
 )
-from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
@@ -50,9 +48,9 @@ def _detect_devices() -> tuple:
         name = torch.cuda.get_device_name(i)
         devices.append((f"CUDA:{i}  ({name})", f"cuda:{i}"))
 
-    msg = (  # nosec B608
+    msg = (
         f"{count} GPU{'s' if count > 1 else ''} detected. "
-        "Select one from the dropdown above."
+        "Choose one in the dropdown above."
     )
     return devices, (msg, False)
 
@@ -116,7 +114,21 @@ class HardwareWidget(QWidget):
         # --- Connections -----------------------------------------------------
         self.refresh_btn.clicked.connect(self._refresh_devices)
 
-        # Populate on startup
+        # Device detection imports torch. For a CUDA build that means loading
+        # hundreds of megabytes of DLLs plus CUDA context setup — several
+        # seconds, on the GUI thread. Deferring it until this tab is actually
+        # opened lets the plugin panel appear immediately.
+        self._devices_loaded = False
+        self.device_combo.addItem("Detecting devices…", "cpu")
+        self.device_hint.setText(
+            "Looking for compute devices — the first check loads PyTorch "
+            "and can take a few seconds.")
+        self.device_hint.setVisible(True)
+
+    def ensure_devices_loaded(self):
+        """Runs device detection once, when this tab is first opened."""
+        if self._devices_loaded:
+            return
         self._refresh_devices()
 
     # -------------------------------------------------------------------------
@@ -125,6 +137,7 @@ class HardwareWidget(QWidget):
 
     def _refresh_devices(self):
         """Re-detects compute devices and repopulates the combo box."""
+        self._devices_loaded = True
         devices, (message, is_error) = _detect_devices()
 
         self.device_combo.blockSignals(True)
