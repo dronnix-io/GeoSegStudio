@@ -25,3 +25,7 @@ DL/data_preparation/__pycache__/
 *.docx
 *.xls
 *.xlsx
+
+# Full-resolution figure masters. The repository carries web-optimised
+# WebP versions in docs/handbook/images/; these are the originals.
+docs/_source_figures/
