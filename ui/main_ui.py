@@ -20,6 +20,12 @@ class GeoSegStudioDockWidget(QDockWidget):
 
         main_widget = QWidget()
         layout = QVBoxLayout(main_widget)
+        # No margins or spacing: the tabs and the footer should reach the panel
+        # edges and sit flush against each other. With Qt's default margins the
+        # footer floats in a grey gutter and reads as something detached that
+        # happens to be underneath, rather than part of the panel.
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
         self.tab2 = Tab2Widget()
         self.tab3 = Tab3Widget()

@@ -78,8 +78,8 @@ class LinksFooter(QWidget):
 
         self.setStyleSheet(f"""
             QWidget#linksFooter {{
-                background-color: {Palette.CARD_BG};
-                border-top: 1px solid {Palette.SEPARATOR};
+                background-color: {Palette.CONTENT_BG};
+                border-top: 1px solid {Palette.CONTENT_BORDER};
             }}
             QPushButton#footerRepo {{
                 color: {Palette.CARD_VALUE}; background: transparent;
