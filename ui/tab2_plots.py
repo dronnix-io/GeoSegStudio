@@ -71,7 +71,7 @@ class TrainingPlotWidget(QWidget):
 
         except Exception as exc:
             lbl = QLabel(f"Plots unavailable: {exc}")
-            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setWordWrap(True)
             inner_layout.addWidget(lbl)
 

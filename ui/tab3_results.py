@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QLabel,
-    QTableWidget, QTableWidgetItem, QHeaderView,
+    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
 )
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
@@ -48,29 +48,29 @@ class EvalResultsWidget(QWidget):
         self.metrics_table = QTableWidget(len(_METRIC_ROWS), 2)
         self.metrics_table.setHorizontalHeaderLabels(["Metric", "Value"])
         self.metrics_table.horizontalHeader().setSectionResizeMode(
-            0, QHeaderView.Stretch
+            0, QHeaderView.ResizeMode.Stretch
         )
         self.metrics_table.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeToContents
+            1, QHeaderView.ResizeMode.ResizeToContents
         )
         self.metrics_table.verticalHeader().setVisible(False)
-        self.metrics_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.metrics_table.setSelectionMode(QTableWidget.NoSelection)
+        self.metrics_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.metrics_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.metrics_table.setMaximumHeight(175)
 
         for row, (label, _) in enumerate(_METRIC_ROWS):
             item = QTableWidgetItem(label)
-            item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
             self.metrics_table.setItem(row, 0, item)
             val_item = QTableWidgetItem("—")
-            val_item.setTextAlignment(Qt.AlignCenter)
+            val_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.metrics_table.setItem(row, 1, val_item)
 
         inner_layout.addWidget(self.metrics_table)
 
         # --- Compact confusion counts ----------------------------------------
         self.cm_lbl = QLabel("")
-        self.cm_lbl.setAlignment(Qt.AlignCenter)
+        self.cm_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.cm_lbl.setVisible(False)
         inner_layout.addWidget(self.cm_lbl)
 
@@ -82,7 +82,7 @@ class EvalResultsWidget(QWidget):
 
         # --- Total tiles label -----------------------------------------------
         self.total_lbl = QLabel("")
-        self.total_lbl.setAlignment(Qt.AlignRight)
+        self.total_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.total_lbl.setVisible(False)
         inner_layout.addWidget(self.total_lbl)
 

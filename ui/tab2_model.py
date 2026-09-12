@@ -49,7 +49,7 @@ class ModelWidget(QWidget):
         self.advanced_btn.setFlat(True)
         self.advanced_btn.setCheckable(True)
         self.advanced_btn.setChecked(False)
-        self.advanced_btn.setCursor(Qt.PointingHandCursor)
+        self.advanced_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.advanced_btn.clicked.connect(self._toggle_advanced)
         self.form.addRow("", self.advanced_btn)
 

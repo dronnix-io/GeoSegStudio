@@ -35,8 +35,8 @@ class EvalSamplesWidget(QWidget):
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Preferred)
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred)
 
         self._grid_widget = QWidget()
         self._grid_layout = QVBoxLayout(self._grid_widget)
@@ -44,7 +44,7 @@ class EvalSamplesWidget(QWidget):
         self._grid_layout.setSpacing(12)
 
         self._placeholder = QLabel("No samples yet.")
-        self._placeholder.setAlignment(Qt.AlignCenter)
+        self._placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._grid_layout.addWidget(self._placeholder)
 
         self._scroll.setWidget(self._grid_widget)
@@ -96,7 +96,7 @@ class EvalSamplesWidget(QWidget):
                 "matplotlib is not available — cannot render sample images.\n"
                 "Install matplotlib into the plugin's Python environment."
             )
-            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setWordWrap(True)
             self._grid_layout.addWidget(lbl)
             self.setVisible(True)
@@ -138,7 +138,7 @@ class EvalSamplesWidget(QWidget):
         iou = sample.get("iou", None)
         iou_str = f"  —  IoU: {iou:.4f}" if iou is not None else ""
         title = QLabel(f"<b>{fname}</b>{iou_str}")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         # Figure with 3 subplots

@@ -36,7 +36,7 @@ class ExpandableGroupBox(QWidget):
         # ── Header bar ───────────────────────────────────────────────────────
         self._header = QFrame()
         self._header.setObjectName("EGB_header")
-        self._header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self._header.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self._header.setStyleSheet(f"""
             QFrame#EGB_header {{
                 background-color: {Palette.HEADER_BG};
@@ -64,7 +64,7 @@ class ExpandableGroupBox(QWidget):
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(True)
         self.toggle_button.setText("▾")
-        self.toggle_button.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        self.toggle_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         self.toggle_button.setStyleSheet(f"""
             QToolButton {{
                 border: none;
@@ -92,9 +92,9 @@ class ExpandableGroupBox(QWidget):
         # ── Content area ─────────────────────────────────────────────────────
         self.content_area = QFrame()
         self.content_area.setObjectName("EGB_content")
-        self.content_area.setFrameShape(QFrame.NoFrame)
+        self.content_area.setFrameShape(QFrame.Shape.NoFrame)
         self.content_area.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed)
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.content_area.setStyleSheet(f"""
             QFrame#EGB_content {{
                 background-color: {Palette.CONTENT_BG};

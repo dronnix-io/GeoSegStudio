@@ -39,10 +39,10 @@ class PredictRunWidget(QWidget):
 
         self.run_btn = QPushButton("Run Prediction")
         style_primary_btn(self.run_btn)
-        self.run_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.run_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.stop_btn.setEnabled(False)
         style_danger_btn(self.stop_btn)
 
@@ -52,7 +52,7 @@ class PredictRunWidget(QWidget):
 
         # --- Phase label -----------------------------------------------------
         self.phase_label = QLabel("")
-        self.phase_label.setAlignment(Qt.AlignCenter)
+        self.phase_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.phase_label.setVisible(False)
         inner_layout.addWidget(self.phase_label)
 
@@ -67,7 +67,7 @@ class PredictRunWidget(QWidget):
 
         # --- Status label ----------------------------------------------------
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setWordWrap(True)
         self.status_label.setVisible(False)
         inner_layout.addWidget(self.status_label)

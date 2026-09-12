@@ -1,5 +1,4 @@
 from qgis.PyQt.QtWidgets import QWidget, QFormLayout
-from qgis.PyQt.QtCore import Qt
 
 
 class SectionContentWidget(QWidget):

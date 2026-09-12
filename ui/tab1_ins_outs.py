@@ -2,10 +2,9 @@
 module: tab1_ins_outs.py
 '''
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QComboBox, QLineEdit, QPushButton, QLabel,
+    QWidget, QVBoxLayout, QComboBox, QLineEdit, QPushButton,
     QHBoxLayout, QFileDialog
 )
-from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsMapLayer, QgsProject
 
 from .expandable_groupbox import ExpandableGroupBox
@@ -74,9 +73,9 @@ class InsAndOutsWidget(QWidget):
         self.vector_combo.clear()
 
         for layer in QgsProject.instance().mapLayers().values():
-            if layer.type() == QgsMapLayer.RasterLayer:
+            if layer.type() == QgsMapLayer.LayerType.RasterLayer:
                 self.raster_combo.addItem(layer.name(), layer.id())
-            elif layer.type() == QgsMapLayer.VectorLayer:
+            elif layer.type() == QgsMapLayer.LayerType.VectorLayer:
                 self.vector_combo.addItem(layer.name(), layer.id())
 
     def _select_output_directory(self):

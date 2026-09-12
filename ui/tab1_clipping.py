@@ -3,7 +3,7 @@ module: tab1_clipping.py
 """
 import multiprocessing
 from qgis.PyQt.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox,
+    QWidget, QVBoxLayout, QLabel, QSpinBox,
     QComboBox, QPushButton, QProgressBar
 )
 from qgis.PyQt.QtCore import Qt
@@ -77,7 +77,7 @@ class ClippingWidget(QWidget):
         bottom_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setVisible(False)
         bottom_layout.addWidget(self.status_label)
 

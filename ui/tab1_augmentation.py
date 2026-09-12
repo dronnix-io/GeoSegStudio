@@ -73,7 +73,7 @@ class AugmentationWidget(QWidget):
         bottom_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setVisible(False)
         bottom_layout.addWidget(self.status_label)
 
@@ -96,7 +96,7 @@ class AugmentationWidget(QWidget):
 
     def _init_checkboxes(self):
         self.checkbox_all = QCheckBox("All")
-        self.checkbox_all.stateChanged.connect(self._handle_all_checkbox)
+        self.checkbox_all.toggled.connect(self._handle_all_checkbox)
         self.grid_layout.addWidget(self.checkbox_all, 0, 0)
 
         for i, (label, always_checked) in enumerate(self.augmentations):
@@ -105,16 +105,19 @@ class AugmentationWidget(QWidget):
             if always_checked:
                 cb.setEnabled(False)
             else:
-                cb.stateChanged.connect(self._handle_individual_checkbox)
+                cb.toggled.connect(self._handle_individual_checkbox)
             row = (i + 1) // 2
             col = (i + 1) % 2
             self.grid_layout.addWidget(cb, row, col)
             self.checkboxes[label] = cb
 
-    def _handle_all_checkbox(self, state):
+    def _handle_all_checkbox(self, checked: bool):
+        # Driven by toggled(bool) rather than stateChanged(int): under PyQt6
+        # the int carried by stateChanged does not compare equal to the
+        # Qt.CheckState enum, and stateChanged is deprecated in Qt 6.
         for cb in self.checkboxes.values():
             if cb.isEnabled():
-                cb.setChecked(state == Qt.Checked)
+                cb.setChecked(checked)
 
     def _handle_individual_checkbox(self):
         all_checked = all(

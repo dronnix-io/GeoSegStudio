@@ -57,8 +57,8 @@ class EvalDatasetWidget(QWidget):
         dir_row.addWidget(self.browse_btn)
 
         ver_sep = QFrame()
-        ver_sep.setFrameShape(QFrame.VLine)
-        ver_sep.setFrameShadow(QFrame.Sunken)
+        ver_sep.setFrameShape(QFrame.Shape.VLine)
+        ver_sep.setFrameShadow(QFrame.Shadow.Sunken)
         dir_row.addWidget(ver_sep)
 
         self.version_combo = QComboBox()

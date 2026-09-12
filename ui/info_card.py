@@ -27,7 +27,6 @@ Usage
 from qgis.PyQt.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy, QFrame,
 )
-from qgis.PyQt.QtCore import Qt
 
 from .styles import Palette
 
@@ -46,7 +45,7 @@ class _Card(QFrame):
                 padding: 0px;
             }}
         """)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 6, 10, 6)

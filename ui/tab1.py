@@ -47,7 +47,7 @@ class Tab1Widget(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        scroll.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         scroll_content = QWidget()
         content_layout = QVBoxLayout(scroll_content)
@@ -71,7 +71,7 @@ class Tab1Widget(QWidget):
         from .styles import style_danger_btn
         self.stop_all_btn = QPushButton("Stop")
         self.stop_all_btn.setEnabled(False)
-        self.stop_all_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.stop_all_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         style_danger_btn(self.stop_all_btn)
         self.stop_all_btn.clicked.connect(self._on_stop_all)
 

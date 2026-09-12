@@ -65,7 +65,7 @@ class PredictInputWidget(QWidget):
             from qgis.core import QgsMapLayerProxyModel
 
             self.layer_combo = QgsMapLayerComboBox()
-            self.layer_combo.setFilters(QgsMapLayerProxyModel.RasterLayer)
+            self.layer_combo.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
             self.layer_combo.setAllowEmptyLayer(True)
             self.layer_combo.setToolTip(
                 "Select a raster layer already loaded in the QGIS project."

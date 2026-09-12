@@ -78,7 +78,7 @@ class SplittingWidget(QWidget):
         bottom_layout.addWidget(self.progress_bar)
 
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setVisible(False)
         bottom_layout.addWidget(self.status_label)
 
