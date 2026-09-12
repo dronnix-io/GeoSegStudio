@@ -1,13 +1,15 @@
 '''
 module: main_ui.py
 '''
-from qgis.PyQt.QtWidgets import QDockWidget, QTabWidget, QVBoxLayout, QWidget
+from qgis.PyQt.QtWidgets import (
+    QDockWidget, QTabWidget, QHBoxLayout, QWidget,
+)
 from qgis.PyQt.QtCore import QTimer
 from .tab1 import Tab1Widget
 from .tab2 import Tab2Widget
 from .tab3 import Tab3Widget
 from .tab4 import Tab4Widget
-from .footer_links import LinksFooter
+from .links_rail import LinksRail
 
 
 class GeoSegStudioDockWidget(QDockWidget):
@@ -19,13 +21,16 @@ class GeoSegStudioDockWidget(QDockWidget):
         self.setMinimumWidth(500)
 
         main_widget = QWidget()
-        layout = QVBoxLayout(main_widget)
-        # No margins or spacing: the tabs and the footer should reach the panel
-        # edges and sit flush against each other. With Qt's default margins the
-        # footer floats in a grey gutter and reads as something detached that
-        # happens to be underneath, rather than part of the panel.
+        # Horizontal: a narrow links rail pinned down the left edge, then the
+        # tabs filling the rest. No margins or spacing, so the rail is flush
+        # against the panel edge and reads as part of the panel rather than
+        # something floating next to it.
+        layout = QHBoxLayout(main_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
+        self.rail = LinksRail()
+        layout.addWidget(self.rail)
 
         self.tab2 = Tab2Widget()
         self.tab3 = Tab3Widget()
@@ -37,13 +42,7 @@ class GeoSegStudioDockWidget(QDockWidget):
         self.tabs.addTab(self.tab3, "Evaluate")
         self.tabs.addTab(self.tab4, "Predict")
 
-        layout.addWidget(self.tabs)
-
-        # Community links pinned below the tabs. The rightmost link follows the
-        # active tab, so the handbook chapter for whatever the user is doing is
-        # always one click away.
-        self.footer = LinksFooter()
-        layout.addWidget(self.footer)
+        layout.addWidget(self.tabs, 1)
 
         self.setWidget(main_widget)
 
@@ -56,8 +55,8 @@ class GeoSegStudioDockWidget(QDockWidget):
         QTimer.singleShot(0, lambda: self._on_tab_changed(self.tabs.currentIndex()))
 
     def _on_tab_changed(self, index):
-        """Points the footer at the right chapter and triggers device detection."""
-        self.footer.set_tab(self.tabs.tabText(index))
+        """Points the rail at the right chapter and triggers device detection."""
+        self.rail.set_tab(self.tabs.tabText(index))
 
         widget = self.tabs.widget(index)
         if widget is None:
