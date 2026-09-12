@@ -50,6 +50,9 @@ import csv
 import numpy as np
 import torch
 
+from .checkpoint_io import load_checkpoint
+from ..log_utils import log_warning
+
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 
@@ -84,10 +87,10 @@ class EvaluationWorker(QThread):
 
         # --- Load checkpoint -------------------------------------------------
         self.phase_update.emit("Loading model from checkpoint...")
-        ckpt = torch.load(
+        ckpt = load_checkpoint(
             cfg["checkpoint_path"],
             map_location=device,
-            weights_only=False)  # nosec B614
+        )
 
         saved = ckpt.get("config", {})
         architecture = ckpt.get("architecture") or saved.get("architecture")
@@ -274,7 +277,7 @@ def _save_mask_geotiff(
     geotransform and CRS as the reference image tile.
     """
     try:
-        from osgeo import gdal, osr
+        from osgeo import gdal
         gdal.UseExceptions()
 
         ref = gdal.Open(ref_image_path, gdal.GA_ReadOnly)
@@ -294,5 +297,6 @@ def _save_mask_geotiff(
         ds.FlushCache()
         ds = None
         ref = None
-    except Exception:
-        pass  # mask saving is optional — never crash the evaluation
+    except Exception as exc:
+        # Mask saving is optional — never crash the evaluation over it.
+        log_warning(f"Could not save prediction mask to {out_path}", exc)

@@ -56,6 +56,9 @@ import os
 
 import torch
 
+from .checkpoint_io import load_checkpoint
+from ..log_utils import log_warning
+
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 
@@ -340,16 +343,18 @@ class TrainingWorker(QThread):
     @staticmethod
     def _load_checkpoint(path: str, model, optimizer, device):
         """Loads state from a .pth checkpoint. Returns (start_epoch, best_iou)."""
-        data = torch.load(
+        data = load_checkpoint(
             path,
             map_location=device,
-            weights_only=False)  # nosec B614
+        )
         model.load_state_dict(data["model_state_dict"])
         if "optimizer_state_dict" in data:
             try:
                 optimizer.load_state_dict(data["optimizer_state_dict"])
-            except Exception:
-                pass  # ignore if optimizer shape changed (fine-tune scenario)
+            except Exception as exc:
+                # Expected when fine-tuning with a changed optimizer shape;
+                # training continues with a fresh optimizer state.
+                log_warning("Could not restore optimizer state", exc)
         start_epoch = data.get("epoch", 0) + 1
         best_iou = data.get("val_iou", -1.0) or -1.0
         return start_epoch, best_iou

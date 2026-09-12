@@ -87,11 +87,13 @@ class PredictModelWidget(QWidget):
         self.meta_cards.clear_cards()
 
         try:
-            import torch
-            data = torch.load(
+            # Imported lazily: raises ImportError when the PyTorch env
+            # is not installed yet, which callers report to the user.
+            from ..DL.checkpoint_io import load_checkpoint
+            data = load_checkpoint(
                 path,
                 map_location="cpu",
-                weights_only=False)  # nosec B614
+            )
         except ImportError:
             self._show_hint(
                 "PyTorch is not installed — cannot read checkpoint metadata.",

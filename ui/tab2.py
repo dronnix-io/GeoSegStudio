@@ -36,7 +36,7 @@ class Tab2Widget(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        scroll.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         scroll_content = QWidget()
         content_layout = QVBoxLayout(scroll_content)
@@ -187,11 +187,13 @@ class Tab2Widget(QWidget):
         path = config["resume_path"]
 
         try:
-            import torch
-            data = torch.load(
+            # Imported lazily: raises ImportError when the PyTorch env
+            # is not installed yet, which callers report to the user.
+            from ..DL.checkpoint_io import load_checkpoint
+            data = load_checkpoint(
                 path,
                 map_location="cpu",
-                weights_only=False)  # nosec B614
+            )
         except Exception as exc:
             return (
                 f"Could not read the checkpoint file:\n  {exc}\n\n"

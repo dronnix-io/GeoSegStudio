@@ -59,6 +59,9 @@ import tempfile
 import numpy as np
 import torch
 
+from .checkpoint_io import load_checkpoint
+from ..log_utils import log_warning
+
 from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 
@@ -92,10 +95,10 @@ class PredictionWorker(QThread):
 
         # --- Load checkpoint -------------------------------------------------
         self.phase_update.emit("Loading model from checkpoint…")
-        ckpt = torch.load(
+        ckpt = load_checkpoint(
             cfg["checkpoint_path"],
             map_location=device,
-            weights_only=False)  # nosec B614
+        )
 
         saved = ckpt.get("config", {})
         architecture = ckpt.get("architecture") or saved.get("architecture")
@@ -341,8 +344,9 @@ def _polygonize(raster_path: str, out_path: str, projection: str):
                 shp = _wkb.loads(bytes(geom.ExportToWkb()))
                 feat.SetField("area_crs_units2", shp.area)
                 layer.SetFeature(feat)
-            except Exception:
-                pass
+            except Exception as exc:
+                log_warning(
+                    f"Could not compute area for feature {feat.GetFID()}", exc)
 
     out_ds.FlushCache()
     out_ds = None

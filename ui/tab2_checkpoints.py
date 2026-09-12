@@ -8,14 +8,12 @@ Two responsibilities:
   Resume — optionally load an existing .pth file to continue training
            or fine-tune a previously trained model.
 """
-import os
 
 from qgis.PyQt.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLineEdit, QPushButton, QComboBox, QSpinBox,
     QLabel, QFileDialog, QFrame, QCheckBox,
 )
-from qgis.PyQt.QtCore import Qt
 
 from .expandable_groupbox import ExpandableGroupBox
 from .section_content_widget import SectionContentWidget
@@ -93,8 +91,8 @@ class CheckpointsWidget(QWidget):
 
         # ── Separator ────────────────────────────────────────────────────────
         sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setFrameShadow(QFrame.Sunken)
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setFrameShadow(QFrame.Shadow.Sunken)
         self.form.addRow(sep)
 
         # ── Resume (optional) ────────────────────────────────────────────────
@@ -193,18 +191,22 @@ class CheckpointsWidget(QWidget):
     def _load_checkpoint_metadata(self, path: str):
         """Reads the checkpoint file and shows a summary hint."""
         try:
-            import torch
-            data = torch.load(
+            # Imported lazily: raises ImportError when the PyTorch env
+            # is not installed yet, which callers report to the user.
+            from ..DL.checkpoint_io import load_checkpoint
+            data = load_checkpoint(
                 path,
                 map_location="cpu",
-                weights_only=False)  # nosec B614
+            )
 
             arch = data.get("architecture", "unknown")
             epoch = data.get("epoch", "?")
             val_iou = data.get("val_iou", None)
 
-            iou_str = f"  |  Val IoU: {
-                val_iou:.4f}" if val_iou is not None else ""
+            iou_str = (
+                f"  |  Val IoU: {val_iou:.4f}"
+                if val_iou is not None else ""
+            )
             hint = (
                 f"<span style='color:green'>"
                 f"Architecture: {arch}  |  Epoch: {epoch}{iou_str}"
