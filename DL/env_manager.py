@@ -24,8 +24,12 @@ patch_sys_path()     — prepend env site-packages to sys.path (called
 from __future__ import annotations
 
 import sys
-# subprocess is used only to run the env's own Python interpreter; every call
-# below passes a fixed argv list and never shell=True.
+# subprocess is used only to run the env's own Python interpreter and
+# nvidia-smi. Every call below passes a fixed argv list, never a shell string,
+# and never shell=True; the executables come from get_env_python(),
+# _find_system_python() or shutil.which(), not from user input. The B603
+# suppressions on those calls mark that scanner false positive - unlike a real
+# finding, which belongs fixed rather than silenced.
 import subprocess  # nosec B404
 from pathlib import Path
 
@@ -58,11 +62,20 @@ def _env_root() -> Path:
     """
     try:
         from qgis.core import QgsApplication
+    except ImportError:
+        # Not running inside QGIS (tests, scripts). Expected, not a problem.
+        return _PLUGIN_DIR
+
+    try:
         profile = Path(QgsApplication.qgisSettingsDirPath())
-        if str(profile) and profile != Path("."):
-            return profile / "geoseg_studio"
-    except Exception:
-        pass
+    except Exception as exc:
+        log_warning(
+            "Could not resolve the QGIS profile directory; falling back to "
+            "the plugin folder for the PyTorch environment", exc)
+        return _PLUGIN_DIR
+
+    if str(profile) and profile != Path("."):
+        return profile / "geoseg_studio"
     return _PLUGIN_DIR
 
 
@@ -120,7 +133,7 @@ def detect_gpu() -> tuple[str, float] | None:
     if not exe:
         return None
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [exe, "--query-gpu=name,driver_version", "--format=csv,noheader"],
             capture_output=True,
             text=True,
@@ -280,7 +293,7 @@ def is_env_ready() -> bool:
         return False
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [python, "-c", "import torch"],
             capture_output=True,
             timeout=15,
@@ -395,7 +408,7 @@ def get_pip_cmd(cuda_key: str) -> list[str]:
 def _has_pip() -> bool:
     """Returns True when pip is importable from the freshly created env."""
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [get_env_python(), "-m", "pip", "--version"],
             capture_output=True,
             timeout=60,
@@ -428,7 +441,7 @@ def create_env() -> tuple[bool, str]:
             shutil.rmtree(ENV_DIR)
 
         # Preferred path: venv provisions pip via ensurepip on its own.
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [
                 _find_system_python(), "-m", "venv",
                 "--system-site-packages",
@@ -446,7 +459,7 @@ def create_env() -> tuple[bool, str]:
             if ENV_DIR.exists():
                 shutil.rmtree(ENV_DIR)
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 [
                     _find_system_python(), "-m", "venv",
                     "--system-site-packages",
@@ -461,7 +474,7 @@ def create_env() -> tuple[bool, str]:
             if result.returncode != 0:
                 return False, result.stderr.strip() or "venv creation failed."
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 [get_env_python(), "-m", "ensurepip", "--upgrade", "--default-pip"],
                 capture_output=True,
                 text=True,

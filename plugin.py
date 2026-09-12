@@ -103,9 +103,11 @@ class GeoSegStudioPlugin:
                 try:
                     if bar is not None:
                         self.iface.messageBar().popWidget(bar)
-                except Exception:
-                    # Already dismissed by the user or timed out — harmless.
-                    pass
+                except Exception as exc:
+                    # Usually means the user already dismissed it, or it timed
+                    # out. Harmless either way, but worth a line in the log
+                    # rather than swallowing it silently.
+                    log_warning("Could not dismiss the startup message", exc)
 
     def show_setup(self):
         """Opens the PyTorch setup dialog on demand, rebuilding if needed."""

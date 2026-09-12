@@ -64,7 +64,7 @@ class _InstallWorker(QThread):
         try:
             # cmd is built by get_pip_cmd() from a validated key — a fixed
             # argv list, never a shell string, so nothing here is injectable.
-            proc = subprocess.Popen(
+            proc = subprocess.Popen(  # nosec B603
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

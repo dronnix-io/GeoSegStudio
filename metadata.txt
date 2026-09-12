@@ -1,7 +1,7 @@
 [general]
 name=GeoSeg Studio
 description=Full-pipeline deep learning semantic segmentation for geospatial raster data.
-version=1.1.0
+version=1.1.1
 qgisMinimumVersion=3.34
 # Required for the plugin to be offered in QGIS 4 (Qt6). Without an
 # explicit maximum the repository caps the plugin at QGIS 3.x.
@@ -24,6 +24,10 @@ deprecated=False
 hasProcessingProvider=no
 license=GPLv2
 changelog=
+    1.1.1
+    - Code quality: two error paths logged instead of silently ignored, and
+      the subprocess calls that run the plugin's own Python are annotated as
+      reviewed. No functional change.
     1.1.0
     - QGIS 4 / Qt6 support. The plugin now runs on both QGIS 3 and QGIS 4.
     - Security: checkpoints load with pickle execution disabled, so a
